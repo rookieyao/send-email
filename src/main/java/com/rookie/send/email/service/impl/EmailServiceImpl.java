@@ -55,9 +55,33 @@ public class EmailServiceImpl implements EmailService {
     public void sendEmailByThread(ArrayBlockingQueue recevierQueue) {
         ReceiverPool.receiverPool = recevierQueue;
         while (!recevierQueue.isEmpty()){
-            Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.unUsedAddresserQueue.poll();
-            sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+            if(!AddresserPool.unUsedAddresserQueue.isEmpty()){
+                Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.unUsedAddresserQueue.poll();
+                sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                AddresserPool.usedAddresserQueue.offer(address);
+            }else{
+                if(!AddresserPool.usedAddresserQueue.isEmpty()){
+                    Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.usedAddresserQueue.poll();
+                    sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                }else{
+                    LOGGER.info("there is an error!");
+                }
+            }
+
+
         }
+    }
+
+    public static void main(String[] args) {
+        ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<String>(10000);
+        System.out.println("empty test:"+usedAddresserQueue.isEmpty());
+        System.out.println("size test:"+usedAddresserQueue.size());
+        usedAddresserQueue.offer("rookie");
+        System.out.println("empty1 test:"+usedAddresserQueue.isEmpty());
+        System.out.println("size1 test:"+usedAddresserQueue.size());
+        System.out.println(usedAddresserQueue.poll());
+        System.out.println("empty2 test:"+usedAddresserQueue.isEmpty());
+        System.out.println("size2 test:"+usedAddresserQueue.size());
     }
 
 }

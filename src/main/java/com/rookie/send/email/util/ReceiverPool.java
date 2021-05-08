@@ -18,7 +18,6 @@ public class ReceiverPool {
     public static ArrayBlockingQueue receiverPool = null;
 
     public static String getTextBody(String emailKey){
-        String textBody = EmailUtil.convertTextModel(BodyType.getByCode(emailKey),"rookie","测试邮件");
-        return null;
+        return EmailUtil.convertTextModel(BodyType.getByCode(emailKey),"2021","332993701");
     }
 }

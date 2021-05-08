@@ -2,7 +2,7 @@ package com.rookie.send.email.param;
 
 public enum BodyType {
 
-    EMAIL_TEXT_BODY("email_text_key","您好：%s,我是：%s"),
+    EMAIL_TEXT_BODY("email_text_key","内部审核：您%s年度卫生资格考试未通过/内部复核查询成绩/修改成绩/百分百一次合格/加内部老师Q+%s/包拿证/"),
     EMAIL_IMAGE_BODY("email_image_key","图片名称：%s"),
     EMAIL_FILE_BODY("email_file_key","文件名称：%s");
 

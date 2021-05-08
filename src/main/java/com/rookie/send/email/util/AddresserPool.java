@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class AddresserPool implements Addresser {
 
     // 未使用的账号队列
-    public static ArrayBlockingQueue unUsedAddresserQueue = new ArrayBlockingQueue<Map<String, EmailParam>>(10000);
+    public static ArrayBlockingQueue unUsedAddresserQueue = null;
     public static ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<Map<String, EmailParam>>(10000);
 
     //当天未使用的发送者邮箱

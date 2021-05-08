@@ -54,7 +54,8 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendEmailByThread(ArrayBlockingQueue recevierQueue) {
         ReceiverPool.receiverPool = recevierQueue;
-        while (!recevierQueue.isEmpty()){
+        AddresserPool addresserPool = new AddresserPool();
+        while (recevierQueue.size() >0){
             if(!AddresserPool.unUsedAddresserQueue.isEmpty()){
                 Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.unUsedAddresserQueue.poll();
                 sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
@@ -67,8 +68,6 @@ public class EmailServiceImpl implements EmailService {
                     LOGGER.info("there is an error!");
                 }
             }
-
-
         }
     }
 

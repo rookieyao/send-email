@@ -1,7 +1,5 @@
 package com.rookie.send.email.controller;
 
-import com.rookie.send.email.model.SendEmailModel;
-import com.rookie.send.email.param.EmailType;
 import com.rookie.send.email.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +10,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -77,7 +75,7 @@ public class EmailController {
                     recevierQueue.offer(email);
                 }else{
                     errorEmail.incrementAndGet();
-                    LOGGER.info("不合格的邮箱账号:{}",lineTxt);
+                    LOGGER.info("不合格的邮箱账号:{}",email);
                 }
             }
             br.close();

@@ -5,7 +5,7 @@ package com.rookie.send.email.param;
  */
 public enum EmailType {
 
-    EMAIL_TEXT_KEY("email_text_key","文本邮件"),
+    EMAIL_TEXT_KEY("email_text_key","卫生通知"),
     EMAIL_IMAGE_KEY("email_image_key","图片邮件"),
     EMAIL_FILE_KEY("email_file_key","文件邮件");
 

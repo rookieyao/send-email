@@ -30,13 +30,16 @@ public class EmailUtil {
      */
     public static void sendEmail01 (String receiver, String title, String body, Map<String, EmailParam> address) throws Exception {
         Iterator<EmailParam> iterator = address.values().iterator();
+        if(receiver == null){
+            return;
+        }
         while (iterator.hasNext()){
             EmailParam emailParam = iterator.next(); // 发送人对象信息实体
-            Properties props = System.getProperties();
-            // 设置代理服务器
-            props.setProperty("proxySet", "true");
-            props.setProperty("socksProxyHost", "192.168.155.1");
-            props.setProperty("socksProxyPort", "1081");
+            Properties props = new Properties();
+            // 设置代理服务器  todo
+//            props.setProperty("proxySet", "true");
+//            props.setProperty("socksProxyHost", "192.168.155.1");
+//            props.setProperty("socksProxyPort", "1081");
             props.setProperty("mail.host", emailParam.getEmailHost());
             props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
             props.setProperty("mail.smtp.auth", emailParam.getEmailAuth());

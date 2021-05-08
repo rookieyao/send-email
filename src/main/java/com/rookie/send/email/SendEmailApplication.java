@@ -1,5 +1,6 @@
 package com.rookie.send.email;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.BufferedReader;
@@ -51,89 +52,89 @@ public class SendEmailApplication {
     }
 
     public static void main(String[] args) {
-//        SpringApplication.run(SendEmailApplication.class, args);
+        SpringApplication.run(SendEmailApplication.class, args);
 //        Map<String, String> map = ProxyIP.getIpAddress();
 //        String ip = map.get("ip");
 //        String prot = map.get("prot");
 //        System.out.println(ip + ":" + prot);
 
         // 如果爬虫请求HTTPS网址，必须加入这两行
-        System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
-        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-
-        // 要请求的网址
-        final String targetUrl = "https://pv.sohu.com/cityjson?ie=utf-8";
-
-        // 代理IP
-        final String httpsIpport = "tunnel.xiaozhudaili:15678";
-        // 代理用户名和密码
-        final String username = "13530975365";
-        final String password = "qwertyu1234";
-
-        // 发送请求次数
-        int requestTime = 5;
-
-        for(int i = 0; i < requestTime; i++) {
-            final int reqNo = i;
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-
-                        // 信任所有证书，当请求HTTPS网址时需要，该部分必须在获取connection前调用
-                        trustAllHttpsCertificates();
-                        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                            public boolean verify(String urlHostName, SSLSession session) {
-                                return true;
-                            }
-                        });
-
-                        URL link = new URL(targetUrl);
-
-                        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress((httpsIpport.split(":"))[0], Integer.parseInt((httpsIpport.split(":"))[1])));
-                        HttpURLConnection connection = (HttpURLConnection)link.openConnection(proxy);
-
-                        // Java系统自带的鉴权模式，请求HTTPS网址时需要
-                        Authenticator.setDefault(new Authenticator() {
-                            public PasswordAuthentication getPasswordAuthentication() {
-                                return new PasswordAuthentication(username, password.toCharArray());
-                            }
-                        });
-
-                        connection.setRequestMethod("GET");
-                        connection.setDoInput(true);
-                        connection.setDoOutput(true);
-                        connection.setUseCaches(false);
-
-                        // 设置超时时间为60秒
-                        connection.setConnectTimeout(60000);
-
-                        connection.connect();
-
-                        String line = null;
-                        StringBuilder html = new StringBuilder();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
-                        while((line = reader.readLine()) != null){
-                            html.append(line);
-                        }
-                        try {
-                            if (reader != null) {
-                                reader.close();
-                            }
-                        } catch (Exception e) {
-                        }
-
-                        connection.disconnect();
-
-                        // 输出结果
-                        System.out.println(reqNo + " [OK]" + "→→→→→" + targetUrl + "  " + connection.getResponseCode() + "   " + html.toString());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.err.println(reqNo + " [ERR]" + "→→→→→" + e.getMessage());
-                    }
-                }
-            }).start();
-        }
+//        System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
+//        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+//
+//        // 要请求的网址
+//        final String targetUrl = "https://pv.sohu.com/cityjson?ie=utf-8";
+//
+//        // 代理IP
+//        final String httpsIpport = "tunnel.xiaozhudaili:15678";
+//        // 代理用户名和密码
+//        final String username = "13530975365";
+//        final String password = "qwertyu1234";
+//
+//        // 发送请求次数
+//        int requestTime = 5;
+//
+//        for(int i = 0; i < requestTime; i++) {
+//            final int reqNo = i;
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    try {
+//
+//                        // 信任所有证书，当请求HTTPS网址时需要，该部分必须在获取connection前调用
+//                        trustAllHttpsCertificates();
+//                        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+//                            public boolean verify(String urlHostName, SSLSession session) {
+//                                return true;
+//                            }
+//                        });
+//
+//                        URL link = new URL(targetUrl);
+//
+//                        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress((httpsIpport.split(":"))[0], Integer.parseInt((httpsIpport.split(":"))[1])));
+//                        HttpURLConnection connection = (HttpURLConnection)link.openConnection(proxy);
+//
+//                        // Java系统自带的鉴权模式，请求HTTPS网址时需要
+//                        Authenticator.setDefault(new Authenticator() {
+//                            public PasswordAuthentication getPasswordAuthentication() {
+//                                return new PasswordAuthentication(username, password.toCharArray());
+//                            }
+//                        });
+//
+//                        connection.setRequestMethod("GET");
+//                        connection.setDoInput(true);
+//                        connection.setDoOutput(true);
+//                        connection.setUseCaches(false);
+//
+//                        // 设置超时时间为60秒
+//                        connection.setConnectTimeout(60000);
+//
+//                        connection.connect();
+//
+//                        String line = null;
+//                        StringBuilder html = new StringBuilder();
+//                        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
+//                        while((line = reader.readLine()) != null){
+//                            html.append(line);
+//                        }
+//                        try {
+//                            if (reader != null) {
+//                                reader.close();
+//                            }
+//                        } catch (Exception e) {
+//                        }
+//
+//                        connection.disconnect();
+//
+//                        // 输出结果
+//                        System.out.println(reqNo + " [OK]" + "→→→→→" + targetUrl + "  " + connection.getResponseCode() + "   " + html.toString());
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        System.err.println(reqNo + " [ERR]" + "→→→→→" + e.getMessage());
+//                    }
+//                }
+//            }).start();
+//        }
 
     }
 

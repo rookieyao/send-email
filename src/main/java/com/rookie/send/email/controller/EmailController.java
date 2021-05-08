@@ -13,12 +13,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 @RestController
@@ -32,32 +31,60 @@ public class EmailController {
     final String check = "^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$";
     final Pattern regex = Pattern.compile(check);
 
+//    @RequestMapping("/sendEmail")
+//    public String sendEmail (@RequestParam("file") MultipartFile file, HttpServletRequest request){
+//
+//        SendEmailModel model = new SendEmailModel() ;
+//        model.setReceiver("1126480696@qq.com");
+//        emailService.sendEmail(EmailType.EMAIL_TEXT_KEY.getCode(),model);
+//        LOGGER.info("执行结束====>>");
+//        return "success" ;
+//    }
+
     @RequestMapping("/sendEmail")
     public String sendEmail (@RequestParam("file") MultipartFile file, HttpServletRequest request){
 
         /* 读取数据 */
         try {
+
+            ArrayBlockingQueue recevierQueue = getRecevierQueue(file);
+
+            LOGGER.info("starting send email,email`s num is:{}",recevierQueue.size());
+            emailService.sendEmailByThread(recevierQueue);
+            LOGGER.info("sended email !!!");
+
+        } catch (Exception e) {
+            LOGGER.error("read errors :" + e);
+        }
+
+        return "success" ;
+    }
+
+    public ArrayBlockingQueue getRecevierQueue(MultipartFile file){
+
+        ArrayBlockingQueue recevierQueue = new ArrayBlockingQueue<String>(200000);
+        try {
+            AtomicInteger rightEmail = new AtomicInteger();
+            AtomicInteger errorEmail = new AtomicInteger();
+
             InputStream inputStream = file.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream,"UTF-8"));
             String lineTxt = null;
             while ((lineTxt = br.readLine()) != null) {
-
-                if(regex.matcher(lineTxt.trim()).matches()){
-                    LOGGER.info(lineTxt.trim());
+                String email = lineTxt.trim();
+                if(regex.matcher(email).matches()){
+                    rightEmail.incrementAndGet();
+                    recevierQueue.offer(email);
                 }else{
+                    errorEmail.incrementAndGet();
                     LOGGER.info("不合格的邮箱账号:{}",lineTxt);
                 }
-
             }
             br.close();
-        } catch (Exception e) {
-            System.err.println("read errors :" + e);
+            LOGGER.info("read receiver txt info done,right email num:{},error email num:{}",rightEmail.intValue(),errorEmail.intValue());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-//        SendEmailModel model = new SendEmailModel() ;
-//        model.setReceiver("1126480696@qq.com");
-//        emailService.sendEmail(EmailType.EMAIL_TEXT_KEY.getCode(),model);
-//        LOGGER.info("执行结束====>>");
-        return "success" ;
+        return recevierQueue;
     }
 }

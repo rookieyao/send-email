@@ -1,17 +1,31 @@
 package com.rookie.send.email.service.impl;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.rookie.send.email.model.SendEmailModel;
 import com.rookie.send.email.param.BodyType;
+import com.rookie.send.email.param.EmailParam;
 import com.rookie.send.email.param.EmailType;
 import com.rookie.send.email.service.EmailService;
+import com.rookie.send.email.util.AddresserPool;
 import com.rookie.send.email.util.EmailUtil;
+import com.rookie.send.email.util.ReceiverPool;
+import com.rookie.send.email.util.SendEmailHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.*;
+
 @Component
 @Service
 public class EmailServiceImpl implements EmailService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class) ;
 
     @Async("taskExecutor")
     @Override
@@ -29,6 +43,21 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e){
             e.printStackTrace();
         }
-
     }
+    static final int nThreads = Runtime.getRuntime().availableProcessors();
+
+    private static ExecutorService sendEmailPool = new ThreadPoolExecutor(nThreads, nThreads,
+            3L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(1024), new ThreadFactoryBuilder()
+            .setNameFormat("demo-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
+
+    @Override
+    public void sendEmailByThread(ArrayBlockingQueue recevierQueue) {
+        ReceiverPool.receiverPool = recevierQueue;
+        while (!recevierQueue.isEmpty()){
+            Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.unUsedAddresserQueue.poll();
+            sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+        }
+    }
+
 }

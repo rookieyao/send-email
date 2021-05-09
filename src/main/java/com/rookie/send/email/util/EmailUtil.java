@@ -38,15 +38,15 @@ public class EmailUtil {
         if(receiver == null){
             return;
         }else{
-//            if(1 == 1){
+            if(1 == 1){
                 LOGGER.info("START TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",receiver,title,body, JSON.toJSONString(address));
-//                return;
-//            }
+                return;
+            }
         }
         while (iterator.hasNext()){
             EmailParam emailParam = iterator.next(); // 发送人对象信息实体
 
-            Properties props = getProperties(emailParam);
+            Properties props = getOtherProperties(emailParam);
 
             //使用JavaMail发送邮件的5个步骤
             //1、创建session

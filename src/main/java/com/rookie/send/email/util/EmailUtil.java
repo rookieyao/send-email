@@ -1,6 +1,9 @@
 package com.rookie.send.email.util;
 
+import com.alibaba.fastjson.JSON;
 import com.rookie.send.email.param.EmailParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -21,6 +24,8 @@ import java.util.Properties;
  */
 public class EmailUtil {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailUtil.class) ;
+
     public static void main(String[] args) throws Exception {
 //        sendEmail01("dzyaly@aliyun.com","复杂邮件","自定义图片：<img src='cid:gzh.jpg'/>,网络图片：<img src='http://pic37.nipic.com/20140113/8800276_184927469000_2.png'/>") ;
     }
@@ -32,17 +37,17 @@ public class EmailUtil {
         Iterator<EmailParam> iterator = address.values().iterator();
         if(receiver == null){
             return;
+        }else{
+//            if(1 == 1){
+                LOGGER.info("START TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",receiver,title,body, JSON.toJSONString(address));
+//                return;
+//            }
         }
         while (iterator.hasNext()){
             EmailParam emailParam = iterator.next(); // 发送人对象信息实体
-            Properties props = new Properties();
-            // 设置代理服务器  todo
-//            props.setProperty("proxySet", "true");
-//            props.setProperty("socksProxyHost", "192.168.155.1");
-//            props.setProperty("socksProxyPort", "1081");
-            props.setProperty("mail.host", emailParam.getEmailHost());
-            props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
-            props.setProperty("mail.smtp.auth", emailParam.getEmailAuth());
+
+            Properties props = getProperties(emailParam);
+
             //使用JavaMail发送邮件的5个步骤
             //1、创建session
             Session session = Session.getInstance(props);
@@ -60,6 +65,31 @@ public class EmailUtil {
             ts.close();
         }
 
+    }
+
+    public static Properties getProperties(EmailParam emailParam){
+        Properties props = new Properties();
+        // 设置代理服务器  todo
+//            props.setProperty("proxySet", "true");
+//            props.setProperty("socksProxyHost", "192.168.155.1");
+//            props.setProperty("socksProxyPort", "1081");
+        props.setProperty("mail.host", emailParam.getEmailHost());
+        props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
+        props.put("mail.smtp.port", "587");  // linux如果报错可以尝试587端口
+        props.setProperty("mail.smtp.auth", emailParam.getEmailAuth());
+        //开启SSL
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.socketFactory.port","587");
+        props.put("mail.smtp.socketFactory.fallback","false");
+
+        return props;
+    }
+    public static Properties getOtherProperties(EmailParam emailParam){
+        Properties props = new Properties();
+        props.setProperty("mail.host", emailParam.getEmailHost());
+        props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
+        props.setProperty("mail.smtp.auth", emailParam.getEmailAuth());
+        return props;
     }
 //
 //    /**

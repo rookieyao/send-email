@@ -55,7 +55,6 @@ public class SendEmailHandler implements Runnable{
         try{
 
             String recevier = (String)ReceiverPool.receiverPool.poll();
-            LOGGER.info("收件人账号:{}",recevier);
             // 发送文本邮件
             EmailUtil.sendEmail01(recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
 

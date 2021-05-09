@@ -1,2 +1,2 @@
 发送账号,Host,协议,密码,昵称
-13530975365@163.com,smtp.163.com,smtp,RXMQEYFDVJPCADTC,rookie
+bhuwrsoksx@outlook.com,smtp.office365.com,smtp,qUpPiO504,卫生通知

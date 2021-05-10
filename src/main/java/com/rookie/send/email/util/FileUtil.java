@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
@@ -63,7 +64,9 @@ public class FileUtil {
 
         Map<String,EmailParam> sendInfo = new HashMap<>();
         EmailParam emailParam = new EmailParam();
-        emailParam.setEmailSender(lineContent[0].trim());emailParam.setEmailHost(lineContent[1].trim());
+        String address = lineContent[0].trim();
+        AddresserPool.addresserSendCountMap.put(address,new AtomicInteger(0));
+        emailParam.setEmailSender(address);emailParam.setEmailHost(lineContent[1].trim());
         emailParam.setEmailProtocol(lineContent[2].trim());emailParam.setPassword(lineContent[3].trim());
         emailParam.setEmailNick(lineContent[4].trim());
         sendInfo.put(lineContent[0].trim(),emailParam);

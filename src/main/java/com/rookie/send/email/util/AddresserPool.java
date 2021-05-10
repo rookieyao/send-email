@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Author rookie
@@ -23,6 +25,12 @@ public class AddresserPool implements Addresser {
     // 未使用的账号队列
     public static volatile ArrayBlockingQueue unUsedAddresserQueue = null;
     public static volatile ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<Map<String, EmailParam>>(10000);
+
+    /** 统计当天账号发送次数 */
+    public static volatile Map<String, AtomicInteger> addresserSendCountMap = new ConcurrentHashMap<>();
+
+    /** 账号每天最大发送邮件数*/
+    public static final int maxSendNum = 5;
 
     //当天未使用的发送者邮箱
     public static List<Map<String, EmailParam>> unUsedAddresserPoolList = new ArrayList<>();
@@ -39,7 +47,10 @@ public class AddresserPool implements Addresser {
      */
     private static void initAddresser(){
         ArrayBlockingQueue<Map<String, EmailParam>> queue = FileUtil.readSendersInfo();
-        unUsedAddresserQueue = queue;
+//        unUsedAddresserQueue = queue;
+        while (queue.size() >0){
+            unUsedAddresserPoolList.add(queue.poll());
+        }
     }
 
     @Override

@@ -6,10 +6,7 @@ import com.rookie.send.email.param.BodyType;
 import com.rookie.send.email.param.EmailParam;
 import com.rookie.send.email.param.EmailType;
 import com.rookie.send.email.service.EmailService;
-import com.rookie.send.email.util.AddresserPool;
-import com.rookie.send.email.util.EmailUtil;
-import com.rookie.send.email.util.ReceiverPool;
-import com.rookie.send.email.util.SendEmailHandler;
+import com.rookie.send.email.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -51,22 +48,52 @@ public class EmailServiceImpl implements EmailService {
             new LinkedBlockingQueue<Runnable>(1024), new ThreadFactoryBuilder()
             .setNameFormat("demo-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
 
+    public void sendEmailByThread1(ArrayBlockingQueue recevierQueue) {
+        ReceiverPool.receiverPool = recevierQueue;
+            while (recevierQueue.size() >0){
+                try {
+
+                    if(!AddresserPool.unUsedAddresserQueue.isEmpty()){
+                        Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.unUsedAddresserQueue.poll();
+
+                        sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                        AddresserPool.usedAddresserQueue.offer(address);
+                    }else{
+
+                        if(!AddresserPool.usedAddresserQueue.isEmpty()){
+                            Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.usedAddresserQueue.poll();
+                            sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                            TimeUnit.SECONDS.sleep(2);
+                        }else{
+                            LOGGER.info("there is an error!");
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+    }
+
     @Override
     public void sendEmailByThread(ArrayBlockingQueue recevierQueue) {
+
+        if(DateUtil.belongCalendar(DateUtil.getNowTime(),DateUtil.getBeginTime(),DateUtil.getEndTime())){
+            LOGGER.info("it is can not to send email at now time:{}",DateUtil.getNowTime());
+        }
+
         ReceiverPool.receiverPool = recevierQueue;
-        AddresserPool addresserPool = new AddresserPool();
         while (recevierQueue.size() >0){
-            if(!AddresserPool.unUsedAddresserQueue.isEmpty()){
-                Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.unUsedAddresserQueue.poll();
-                sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
-                AddresserPool.usedAddresserQueue.offer(address);
-            }else{
-                if(!AddresserPool.usedAddresserQueue.isEmpty()){
-                    Map<String, EmailParam> address = (Map<String, EmailParam>)AddresserPool.usedAddresserQueue.poll();
+            try {
+
+                for(Map<String, EmailParam> address:AddresserPool.unUsedAddresserPoolList){
+
                     sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
-                }else{
-                    LOGGER.info("there is an error!");
                 }
+                LOGGER.info("所有发送者账号发送了一轮邮件，休息10s!");
+                TimeUnit.SECONDS.sleep(10);
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

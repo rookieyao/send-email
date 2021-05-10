@@ -29,35 +29,29 @@ public class SendEmailHandler implements Runnable{
     @Override
     public void run() {
 
-        AtomicInteger sendNums = new AtomicInteger(50);//每个账号发送的邮件数
-
-        int i = sendNums.getAndDecrement();
         try {
-            if(i >0){
-                try {
-                    // todo  日志打印
-                    sendOneEmail();
-                    sendNums.decrementAndGet();
-                    TimeUnit.MINUTES.sleep(4);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        } finally {
 
+            if(AddresserPool.addresserSendCountMap.get(address.entrySet().stream().findFirst()).getAndIncrement() <= AddresserPool.maxSendNum){
+                sendOneEmail();
+            }else{
+                LOGGER.info("address:{},已到达当天最大发送次数，不让发送邮件!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        LOGGER.info("当前线程当天邮件发送完毕!");
 
     }
 
+    static Object object = new Object();
     /**  发送邮件的方法 */
     private static void sendOneEmail(){
         try{
 
             String recevier = (String)ReceiverPool.receiverPool.poll();
+            LOGGER.info("开始给:{}发送邮件",recevier);
             // 发送文本邮件
             EmailUtil.sendEmail01(recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
-
+            LOGGER.info("给:{}发送邮件结束",recevier);
         } catch (Exception e){
             e.printStackTrace();
         }

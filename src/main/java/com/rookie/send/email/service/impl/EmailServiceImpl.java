@@ -85,14 +85,13 @@ public class EmailServiceImpl implements EmailService {
         while (recevierQueue.size() >0){
             try {
 
-                CountDownLatch countDownLatch = new CountDownLatch(AddresserPool.unUsedAddresserPoolList.size());
-                for(Map<String, EmailParam> address:AddresserPool.unUsedAddresserPoolList){
 
-                    sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode(),countDownLatch));
+                for(Map<String, EmailParam> address:AddresserPool.unUsedAddresserPoolList){
+                    sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
                 }
-                countDownLatch.await();
-                LOGGER.info("所有发送者账号发送了一轮邮件，休息10s!");
-                TimeUnit.SECONDS.sleep(10);
+
+                LOGGER.info("所有发送者账号当天发送邮件完毕，此时receiverPool长度:{}",ReceiverPool.receiverPool.size());
+//                TimeUnit.SECONDS.sleep(10);
 
             } catch (Exception e) {
                 e.printStackTrace();

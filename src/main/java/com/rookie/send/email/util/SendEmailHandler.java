@@ -22,13 +22,16 @@ public class SendEmailHandler implements Runnable{
     private static final Logger LOGGER = LoggerFactory.getLogger(SendEmailHandler.class) ;
 
     private static Map<String, EmailParam> address;
+//    private static String recevier;
     private static String emailKey;
-    private CountDownLatch countDownLatch;
+//    private CountDownLatch countDownLatch;
 
-    public SendEmailHandler(Map<String, EmailParam> address, String emailKey, CountDownLatch countDownLatch) {
+    public SendEmailHandler(Map<String, EmailParam> address, String emailKey) {
         this.address = address;
+//        this.recevier = recevier;
         this.emailKey = emailKey;
-        this.countDownLatch = countDownLatch;
+//        this.countDownLatch = countDownLatch;
+
     }
 
     @Override
@@ -37,17 +40,19 @@ public class SendEmailHandler implements Runnable{
         try {
 
             String addresser = getAddresser(address);
-            if(AddresserPool.addresserSendCountMap.get(addresser).getAndIncrement() <= AddresserPool.maxSendNum){
+            while(AddresserPool.addresserSendCountMap.get(addresser).getAndIncrement() <= AddresserPool.maxSendNum){
 
                 sendOneEmail(addresser);
+                LOGGER.info("准备休息10s");
+                TimeUnit.SECONDS.sleep(10);
                 LOGGER.info("{}今日发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
-            }else{
-                LOGGER.info("address:{},已到达当天最大发送次数，不让发送邮件!",addresser);
             }
+            LOGGER.info("address:{},已到达当天最大发送次数，不让发送邮件!",addresser);
+
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
-            countDownLatch.countDown();
+//            countDownLatch.countDown();
         }
 
     }
@@ -67,7 +72,11 @@ public class SendEmailHandler implements Runnable{
     private static void sendOneEmail(String addresser){
         try{
 
-            String recevier = (String)ReceiverPool.receiverPool.poll();
+            String recevier = null;
+            synchronized (SendEmailHandler.class){
+                recevier = (String)ReceiverPool.receiverPool.poll();
+            }
+
             LOGGER.info("{}开始给:{}发送邮件",addresser, recevier);
             // 发送文本邮件
             EmailUtil.sendEmail01(recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);

@@ -15,7 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Component
 public class ReceiverPool {
     // 接收者账号队列
-    public static ArrayBlockingQueue receiverPool = null;
+    public static volatile ArrayBlockingQueue receiverPool = null;
 
     public static String getTextBody(String emailKey){
         return EmailUtil.convertTextModel(BodyType.getByCode(emailKey),"2021","332993701");

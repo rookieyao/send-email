@@ -45,7 +45,8 @@ public class SendEmailHandler implements Runnable{
 
 
             String addresser = getAddresser(address);
-            while(AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
+            while(ReceiverPool.receiverPool.size()>0
+                    &&  AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
                 LOGGER.info("{}准备发送邮件，今日已发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
                 AddresserPool.addresserSendCountMap.get(addresser).incrementAndGet();
                 sendOneEmail(addresser,address);

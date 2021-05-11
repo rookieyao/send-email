@@ -73,17 +73,11 @@ public class SendEmailHandler implements Runnable{
 
     static Object object = new Object();
     /**  发送邮件的方法 */
-    private static void sendOneEmail(String addresser, Map<String, EmailParam> address){
-        try{
+    private static void sendOneEmail(String addresser, Map<String, EmailParam> address) throws Exception{
+        String recevier = (String)ReceiverPool.receiverPool.poll();;
 
-            String recevier = (String)ReceiverPool.receiverPool.poll();;
-
-            // 发送文本邮件
-            EmailUtil.sendEmail01(addresser,recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
-
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        // 发送文本邮件
+        EmailUtil.sendEmail01(addresser,recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
     }
 
 }

@@ -40,7 +40,7 @@ public class EmailUtil {
         }else{
             if(1 == 1){
                 LOGGER.info("{} STARTING TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",addresser, receiver,title,body, JSON.toJSONString(address));
-                return;
+//                return;
             }
         }
         while (iterator.hasNext()){
@@ -67,6 +67,7 @@ public class EmailUtil {
 
     }
 
+    /** foxmail 邮箱发送邮件属性配置类获取方法*/
     public static Properties getProperties(EmailParam emailParam){
         Properties props = new Properties();
         // 设置代理服务器  todo

@@ -1,3 +1,2 @@
 发送账号,Host,协议,密码,昵称
 13530975365@163.com,smtp.163.com,smtp,RXMQEYFDVJPCADTC,卫生通知
-13035366320@163.com,smtp.163.com,smtp,RXMQEYFDVJPCADTC,卫生通知

@@ -49,7 +49,6 @@ public class EmailController {
 
             LOGGER.info("starting send email,email`s num is:{}",recevierQueue.size());
             emailService.sendEmailByThread(recevierQueue);
-            LOGGER.info("sended email !!!");
 
         } catch (Exception e) {
             LOGGER.error("read errors :" + e);

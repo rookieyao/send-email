@@ -33,13 +33,13 @@ public class EmailUtil {
     /**
      * 邮箱发送模式01：纯文本格式
      */
-    public static void sendEmail01 (String receiver, String title, String body, Map<String, EmailParam> address) throws Exception {
+    public static void sendEmail01 (String addresser, String receiver, String title, String body, Map<String, EmailParam> address) throws Exception {
         Iterator<EmailParam> iterator = address.values().iterator();
         if(receiver == null){
             return;
         }else{
             if(1 == 1){
-                LOGGER.info("START TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",receiver,title,body, JSON.toJSONString(address));
+                LOGGER.info("{} STARTING TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",addresser, receiver,title,body, JSON.toJSONString(address));
                 return;
             }
         }

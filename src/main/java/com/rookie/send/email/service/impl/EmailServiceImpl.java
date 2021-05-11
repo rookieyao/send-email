@@ -82,21 +82,21 @@ public class EmailServiceImpl implements EmailService {
         }
 
         ReceiverPool.receiverPool = recevierQueue;
-        while (recevierQueue.size() >0){
+//        while (AddresserPool.unUsedAddresserPoolList.size() >0){
             try {
 
 
                 for(Map<String, EmailParam> address:AddresserPool.unUsedAddresserPoolList){
                     sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                    // todo 这里之前没有休眠，导致的后果就是SendEmailHandler 执行的时候，发送者的账号会错乱。
+                    //  本来应该一个账号一个线程发送一次之后休息指定时间，实际上是一个账号连续发送几次邮件
+                    //  感觉这里应该有其他做法的
+                    TimeUnit.SECONDS.sleep(1);
                 }
-
-                LOGGER.info("所有发送者账号当天发送邮件完毕，此时receiverPool长度:{}",ReceiverPool.receiverPool.size());
-//                TimeUnit.SECONDS.sleep(10);
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+//        }
     }
 
     public static void main(String[] args) {

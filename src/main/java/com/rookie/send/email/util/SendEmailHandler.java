@@ -27,6 +27,7 @@ public class SendEmailHandler implements Runnable{
 //    private CountDownLatch countDownLatch;
 
     public SendEmailHandler(Map<String, EmailParam> address, String emailKey) {
+//        LOGGER.info("{}对应的当前线程id:{}",getAddresser(address),Thread.currentThread().getId());
         this.address = address;
 //        this.recevier = recevier;
         this.emailKey = emailKey;
@@ -39,16 +40,19 @@ public class SendEmailHandler implements Runnable{
 
         try {
 
+//            ThreadLocalUtil.set(String.valueOf(Thread.currentThread().getName()),address);
+//            Map<String, EmailParam> address = (Map<String, EmailParam>)ThreadLocalUtil.getThreadLocal().get(String.valueOf(Thread.currentThread().getId()));
+
+
             String addresser = getAddresser(address);
-            while(AddresserPool.addresserSendCountMap.get(addresser).getAndIncrement() <= AddresserPool.maxSendNum){
-
-                sendOneEmail(addresser);
-                LOGGER.info("准备休息10s");
+            while(AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
+                LOGGER.info("{}准备发送邮件，今日已发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
+                AddresserPool.addresserSendCountMap.get(addresser).incrementAndGet();
+                sendOneEmail(addresser,address);
+                LOGGER.info("{}发送完一封邮件，需要休息10s再次发送",addresser);
                 TimeUnit.SECONDS.sleep(10);
-                LOGGER.info("{}今日发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
             }
-            LOGGER.info("address:{},已到达当天最大发送次数，不让发送邮件!",addresser);
-
+            LOGGER.info("{},已到达当天最大发送次数，不让发送邮件!",addresser);
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
@@ -69,18 +73,14 @@ public class SendEmailHandler implements Runnable{
 
     static Object object = new Object();
     /**  发送邮件的方法 */
-    private static void sendOneEmail(String addresser){
+    private static void sendOneEmail(String addresser, Map<String, EmailParam> address){
         try{
 
-            String recevier = null;
-            synchronized (SendEmailHandler.class){
-                recevier = (String)ReceiverPool.receiverPool.poll();
-            }
+            String recevier = (String)ReceiverPool.receiverPool.poll();;
 
-            LOGGER.info("{}开始给:{}发送邮件",addresser, recevier);
             // 发送文本邮件
-            EmailUtil.sendEmail01(recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
-            LOGGER.info("{}给:{}发送邮件结束",addresser, recevier);
+            EmailUtil.sendEmail01(addresser,recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
+
         } catch (Exception e){
             e.printStackTrace();
         }

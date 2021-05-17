@@ -30,7 +30,7 @@ public class AddresserPool implements Addresser {
     public static volatile Map<String, AtomicInteger> addresserSendCountMap = new ConcurrentHashMap<>();
 
     /** 账号每天最大发送邮件数*/
-    public static final int maxSendNum = 5;
+    public static final int maxSendNum = 3;
 
     //当天未使用的发送者邮箱
     public static List<Map<String, EmailParam>> unUsedAddresserPoolList = new ArrayList<>();
@@ -46,13 +46,22 @@ public class AddresserPool implements Addresser {
      * 初始化发送账号池
      */
     private static void initAddresser(){
-        ArrayBlockingQueue<Map<String, EmailParam>> queue = FileUtil.readSendersInfo();
-//        unUsedAddresserQueue = queue;
-        while (queue.size() >0){
-            unUsedAddresserPoolList.add(queue.poll());
-        }
+//        ArrayBlockingQueue<Map<String, EmailParam>> queue = FileUtil.readSendersInfo();
+//
+//        while (queue.size() >0){
+//            unUsedAddresserPoolList.add(queue.poll());
+//        }
+
+//        /** 通过api初始化发送者账号 */
+//        EmailUtil.initSenderEmailsByApi();
+
     }
 
+
+    public static Map<String, EmailParam> getAddressByApi(){
+
+        return EmailUtil.getOneSenderEmailsByApi();
+    }
     @Override
     public Map<String, EmailParam> getAnSendEmailParam() {
 

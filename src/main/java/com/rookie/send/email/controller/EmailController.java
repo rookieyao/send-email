@@ -1,6 +1,7 @@
 package com.rookie.send.email.controller;
 
 import com.rookie.send.email.service.EmailService;
+import com.rookie.send.email.util.ConcurrentHashMapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
@@ -49,6 +51,24 @@ public class EmailController {
 
             LOGGER.info("starting send email,email`s num is:{}",recevierQueue.size());
             emailService.sendEmailByThread(recevierQueue);
+
+        } catch (Exception e) {
+            LOGGER.error("read errors :" + e);
+        }
+
+        return "success" ;
+    }
+
+    @RequestMapping("/sendEmailByApi")
+    public String sendEmailByApi (@RequestParam("file") MultipartFile file, HttpServletRequest request){
+
+        /* 读取数据 */
+        try {
+
+            ArrayBlockingQueue recevierQueue = getRecevierQueue(file);
+
+            LOGGER.info("starting send email,email`s num is:{}",recevierQueue.size());
+            emailService.sendEmailByApi(recevierQueue);
 
         } catch (Exception e) {
             LOGGER.error("read errors :" + e);

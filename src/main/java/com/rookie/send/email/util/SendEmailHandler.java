@@ -45,15 +45,19 @@ public class SendEmailHandler implements Runnable{
 
 
             String addresser = getAddresser(address);
-            while(ReceiverPool.receiverPool.size()>0
-                    &&  AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
-                LOGGER.info("{}准备发送邮件，今日已发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
-                AddresserPool.addresserSendCountMap.get(addresser).incrementAndGet();
-                sendOneEmail(addresser,address);
-                LOGGER.info("{}发送完一封邮件，需要休息10s再次发送",addresser);
-                TimeUnit.SECONDS.sleep(10);
+            while(ReceiverPool.receiverPool.size()>0){
+                if(AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
+                    LOGGER.info("{}准备发送邮件，今日已发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
+                    AddresserPool.addresserSendCountMap.get(addresser).incrementAndGet();
+                    sendOneEmail(addresser,address);
+                    LOGGER.info("{}发送完一封邮件，需要休息3*60s再次发送",addresser);
+                    TimeUnit.SECONDS.sleep(60*3);
+                }else{
+                    LOGGER.info("{},已到达当天最大发送次数，不让发送邮件!",addresser);
+                    break;
+                }
             }
-            LOGGER.info("{},已到达当天最大发送次数，不让发送邮件!",addresser);
+            LOGGER.info("收件人队列为空，发送线程{}结束",Thread.currentThread().getName());
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
@@ -75,10 +79,20 @@ public class SendEmailHandler implements Runnable{
     static Object object = new Object();
     /**  发送邮件的方法 */
     private static void sendOneEmail(String addresser, Map<String, EmailParam> address) throws Exception{
-        String recevier = (String)ReceiverPool.receiverPool.poll();;
+        String recevier = null;
+        try {
+            recevier = (String)ReceiverPool.receiverPool.poll();
 
-        // 发送文本邮件
-        EmailUtil.sendEmail01(addresser,recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
+            // 发送文本邮件
+            EmailUtil.sendEmail01(addresser,recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
+        } catch (Exception e) {
+            AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
+            if(recevier !=null){
+                ReceiverPool.receiverPool.offer(recevier);
+            }
+            e.printStackTrace();
+            LOGGER.error("sendOneEmail出现异常，{}",e.getMessage());
+        }
     }
 
 }

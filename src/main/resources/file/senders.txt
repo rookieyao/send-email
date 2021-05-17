@@ -1,2 +1,4 @@
 发送账号,Host,协议,密码,昵称
-13530975365@163.com,smtp.163.com,smtp,RXMQEYFDVJPCADTC,卫生通知
+stusmoezagdyp@hotmail.com,smtp.office365.com,smtp,c3o43MmD,卫生通知
+nesaslhxiku@hotmail.com,smtp.office365.com,smtp,k3h76P54,卫生通知
+lineefpj@hotmail.com,smtp.office365.com,smtp,SqcXfN2a,卫生通知

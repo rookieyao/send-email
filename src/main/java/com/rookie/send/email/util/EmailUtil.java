@@ -16,9 +16,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.FileOutputStream;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * 邮箱发送工具类
@@ -27,7 +25,7 @@ public class EmailUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailUtil.class) ;
 
-    public static void main(String[] args) throws Exception {
+    public static void main1(String[] args) throws Exception {
 //        sendEmail01("dzyaly@aliyun.com","复杂邮件","自定义图片：<img src='cid:gzh.jpg'/>,网络图片：<img src='http://pic37.nipic.com/20140113/8800276_184927469000_2.png'/>") ;
     }
 
@@ -41,13 +39,12 @@ public class EmailUtil {
         }else{
             if(1 == 1){
                 LOGGER.info("{} STARTING TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",addresser, receiver,title,body, JSON.toJSONString(address));
-//                return;
             }
         }
         while (iterator.hasNext()){
             EmailParam emailParam = iterator.next(); // 发送人对象信息实体
 
-            Properties props = getOtherProperties(emailParam);
+            Properties props = getProperties(emailParam);
 
             //使用JavaMail发送邮件的5个步骤
             //1、创建session
@@ -68,13 +65,31 @@ public class EmailUtil {
 
     }
 
+    final static String url = "https://www.yxa1024.com/getAccountApi.aspx?uid=93673&type=1&token=b5cea9e77db991ee92cb089f3fda44c6&count=100";
+    /** 通过api获取发送账号 */
+    public static void initSenderEmailsByApi(){
+        String[] senderEmailsByApi = ProxyServer.getProxyLine(url).split("<br>");
+        for (String email:senderEmailsByApi){
+            LOGGER.info("通过api获取的邮箱信息为:{}",email);
+            String[] lineContent = email.trim().split("----");
+            Map<String, EmailParam> sendMapByApi = FileUtil.getSendMapByApi(lineContent);
+            AddresserPool.unUsedAddresserPoolList.add(sendMapByApi);
+        }
+    }
+
+    public static Map<String, EmailParam> getOneSenderEmailsByApi(){
+        String url = "https://www.yxa1024.com/getAccountApi.aspx?uid=93673&type=1&token=b5cea9e77db991ee92cb089f3fda44c6&count=1";
+        String email = ProxyServer.getProxyLine(url).split("<br>")[0];
+        String[] lineContent = email.trim().split("----");
+        return FileUtil.getSendMapByApi(lineContent);
+    }
+
+    static Object object = new Object();
     /** foxmail 邮箱发送邮件属性配置类获取方法*/
-    public static Properties getProperties(EmailParam emailParam){
-        Properties props = new Properties();
-        // 设置代理服务器  todo
-//            props.setProperty("proxySet", "true");
-//            props.setProperty("socksProxyHost", "192.168.155.1");
-//            props.setProperty("socksProxyPort", "1081");
+    public static synchronized Properties getProperties(EmailParam emailParam){
+//使用代理请求网易得时候，可能会出现异常，多试几次应该就可以了，其他邮箱可能也有这样得情况
+        Properties props = System.getProperties();
+
         props.setProperty("mail.host", emailParam.getEmailHost());
         props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
         props.put("mail.smtp.port", "587");  // linux如果报错可以尝试587端口
@@ -84,13 +99,69 @@ public class EmailUtil {
         props.put("mail.smtp.socketFactory.port","587");
         props.put("mail.smtp.socketFactory.fallback","false");
 
+        props.setProperty("proxySet", "true");
+        String socksIp  = ProxyServer.getProxyLine(ProxyServer.ServerGetProxyUrl);;
+
+// ip可以复用，但是效果不是很好
+//        if(ConcurrentHashMapUtil.checkCacheName(emailParam.getEmailSender())){ // 如果该账号存在，说明发过一次，并且还在有效期内，直接获取。如果不存在，说明失效了，
+//            LOGGER.info("{}发过邮件，使用的IP还在有效期内，准备使用之前的IP发送邮件!",emailParam.getEmailSender());
+//            socksIp = ConcurrentHashMapUtil.get(emailParam.getEmailSender()).toString();
+//        }else{  // 否则通过api获取代理ip
+//
+//            socksIp = ProxyServer.getProxyLine(ProxyServer.ServerGetProxyUrl);
+//            ConcurrentHashMapUtil.put(emailParam.getEmailSender(),socksIp);
+//            LOGGER.info("{}没发过邮件，准备通过API接口获取新的IP，获取的新IP为:{}",emailParam.getEmailSender(),socksIp);
+//        }
+
+        LOGGER.info("使用代理发送邮件，代理信息为:{}",socksIp);
+        props.setProperty("mail.smtp.socks.host", ProxyServer.getIp(socksIp));
+        props.setProperty("mail.smtp.socks.port", String.valueOf(ProxyServer.getPort(socksIp)));
+
         return props;
     }
-    public static Properties getOtherProperties(EmailParam emailParam){
+
+    public static String getRandomIp(){
+        long timeSeed = System.nanoTime(); // to get the current date time value
+
+        double randSeed = Math.random() * 1000; // random number generation
+
+        long midSeed = (long) (timeSeed * randSeed); // mixing up the time and
+
+        String s = midSeed + "";
+        String subStr = s.substring(0, 9);
+        return subStr;
+    }
+
+    public static Properties getQQProperties(EmailParam emailParam){
+
         Properties props = System.getProperties();
+        props.put("mail.smtp.ssl.enable", true);
+        props.put("mail.smtp.port", 465);//设置端口
         props.setProperty("proxySet", "true");
-        props.setProperty("mail.smtp.socks.host", "183.166.90.120");
-        props.setProperty("mail.smtp.socks.port", "45110");
+        String socksIp = ProxyServer.getProxyLine(ProxyServer.ServerGetProxyUrl);
+        LOGGER.info("使用代理发送邮件，代理信息为:{}",socksIp);
+
+        props.setProperty("mail.host", emailParam.getEmailHost());
+        props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
+
+        props.setProperty("mail.smtp.auth", emailParam.getEmailAuth());
+
+
+        return props;
+    }
+
+    public static Properties getOtherProperties(EmailParam emailParam){
+
+        //使用代理请求网易得时候，可能会出现异常，多试几次应该就可以了，其他邮箱可能也有这样得情况
+        Properties props = System.getProperties();
+
+//        props.put("mail.smtp.ssl.enable", true);
+//        props.put("mail.smtp.port", 465);//设置端口
+//        props.setProperty("proxySet", "true");
+//        String socksIp = ProxyServer.getProxyLine(ProxyServer.ServerGetProxyUrl);
+//        LOGGER.info("使用代理发送邮件，代理信息为:{}",socksIp);
+//        props.setProperty("mail.smtp.socks.host", ProxyServer.getIp(socksIp));
+//        props.setProperty("mail.smtp.socks.port", String.valueOf(ProxyServer.getPort(socksIp)));
         props.setProperty("mail.host", emailParam.getEmailHost());
         props.setProperty("mail.transport.protocol", emailParam.getEmailProtocol());
         props.setProperty("mail.smtp.auth", emailParam.getEmailAuth());

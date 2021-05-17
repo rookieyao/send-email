@@ -72,4 +72,16 @@ public class FileUtil {
         sendInfo.put(lineContent[0].trim(),emailParam);
         return sendInfo;
     }
+
+    public static Map<String, EmailParam> getSendMapByApi(String[] lineContent) {
+        Map<String,EmailParam> sendInfo = new HashMap<>();
+        EmailParam emailParam = new EmailParam();
+        String address = lineContent[0].trim();
+        AddresserPool.addresserSendCountMap.put(address,new AtomicInteger(0));
+        emailParam.setEmailSender(address);emailParam.setEmailHost("smtp.office365.com");
+        emailParam.setEmailProtocol("smtp");emailParam.setPassword(lineContent[1].trim());
+        emailParam.setEmailNick("卫生通知");
+        sendInfo.put(lineContent[0].trim(),emailParam);
+        return sendInfo;
+    }
 }

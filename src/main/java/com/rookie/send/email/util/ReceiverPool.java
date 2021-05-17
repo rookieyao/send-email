@@ -18,6 +18,6 @@ public class ReceiverPool {
     public static volatile ArrayBlockingQueue receiverPool = null;
 
     public static String getTextBody(String emailKey){
-        return EmailUtil.convertTextModel(BodyType.getByCode(emailKey),"2021","332993701");
+        return EmailUtil.convertTextModel(BodyType.getByCode(emailKey),"二零二一","三叁二九久叁柒零幺");
     }
 }

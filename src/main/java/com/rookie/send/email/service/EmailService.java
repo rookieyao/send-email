@@ -8,4 +8,6 @@ public interface EmailService {
     void sendEmail (String emailKey, SendEmailModel model) ;
 
     void sendEmailByThread(ArrayBlockingQueue recevierQueue);
+
+    void sendEmailByApi(ArrayBlockingQueue recevierQueue);
 }

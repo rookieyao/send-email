@@ -14,7 +14,7 @@ import java.util.Random;
 
 public class ProxyServer {
 
-    public static final String ServerGetProxyUrl = "smtp.163.com";
+    public static final String ServerGetProxyUrl = "http://ip.ipjldl.com/index.php/api/entry?method=proxyServer.tiqu_api_url&packid=1&fa=0&dt=&groupid=0&fetch_key=&qty=1&time=1&port=1&format=txt&ss=1&css=&dt=&pro=&city=&usertype=6";
 
     public static void main(String[] args) {
         String v = getProxyLine(ServerGetProxyUrl);
@@ -30,17 +30,19 @@ public class ProxyServer {
             URLConnection conn = url.openConnection();
             // 读取返回数据
             InputStream in = conn.getInputStream();
-            Map maps = (Map) JSON.parse(IO2String(in));
 
-            if ((Integer) maps.get("code") == 200) {
-                List<String> proxyLines = (List<String>) maps.get("result");
-                if (proxyLines.isEmpty()) {
-                    return null;
-                }
+            return IO2String(in);
+//            Map maps = (Map) JSON.parse();
 
-                Random random = new Random();
-                return proxyLines.get(random.nextInt(proxyLines.size()));
-            }
+//            if ((Integer) maps.get("code") == 200) {
+//                List<String> proxyLines = (List<String>) maps.get("result");
+//                if (proxyLines.isEmpty()) {
+//                    return null;
+//                }
+//
+//                Random random = new Random();
+//                return proxyLines.get(random.nextInt(proxyLines.size()));
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         }

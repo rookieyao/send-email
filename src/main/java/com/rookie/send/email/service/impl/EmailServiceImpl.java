@@ -43,7 +43,7 @@ public class EmailServiceImpl implements EmailService {
     }
     static final int nThreads = Runtime.getRuntime().availableProcessors();
 
-    private static ExecutorService sendEmailPool = new ThreadPoolExecutor(nThreads, nThreads,
+    private static ExecutorService sendEmailPool = new ThreadPoolExecutor(100, 100,
             3L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(1024), new ThreadFactoryBuilder()
             .setNameFormat("demo-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
@@ -79,6 +79,7 @@ public class EmailServiceImpl implements EmailService {
 
         if(DateUtil.belongCalendar(DateUtil.getNowTime(),DateUtil.getBeginTime(),DateUtil.getEndTime())){
             LOGGER.info("it is can not to send email at now time:{}",DateUtil.getNowTime());
+            return;
         }
 
         ReceiverPool.receiverPool = recevierQueue;
@@ -91,13 +92,33 @@ public class EmailServiceImpl implements EmailService {
                     // todo 这里之前没有休眠，导致的后果就是SendEmailHandler 执行的时候，发送者的账号会错乱。
                     //  本来应该一个账号一个线程发送一次之后休息指定时间，实际上是一个账号连续发送几次邮件
                     //  感觉这里应该有其他做法的
-                    TimeUnit.SECONDS.sleep(1);
+                    TimeUnit.SECONDS.sleep(3);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
 //        }
     }
+
+    @Override
+    public void sendEmailByApi(ArrayBlockingQueue recevierQueue) {
+
+        ReceiverPool.receiverPool = recevierQueue;
+        try {
+
+            double threadNum = Math.ceil(Double.valueOf(recevierQueue.size()/2));
+
+            LOGGER.info("使用线程数:{}",threadNum);
+            for(int i =0; i<threadNum; i++){
+                Map<String, EmailParam> address = AddresserPool.getAddressByApi();
+                sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                TimeUnit.SECONDS.sleep(60);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public static void main(String[] args) {
         ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<String>(10000);

@@ -5,10 +5,7 @@ import com.rookie.send.email.param.EmailParam;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +37,39 @@ public class AddresserPool implements Addresser {
 
     static {
         initAddresser();
+        initContent();
     }
+
+    public static List<String> contentList = null;
+    private static void initContent(){
+        contentList =  new ArrayList<>();
+        String str1 = "Dear XXX Jewelry,\n" +
+                "\n" +
+                "Glad to know you’re co-branding partner with Swarovski, and have a large quantity of stock!\n" +
+                "\n" +
+                "%s,As the LARGEST BUYER of Swarovski crystals (Dongguan 2014), we produce fashion jewelries since 1999, with competitive price.\n" +
+                "\n" +
+                "a) TWO SWAROVSKI LICENCES.\n" +
+                "b) Jewelleries made with Swarovski crystals, sterling silver 925, zirconia and pearl.\n" +
+                "c) More than 120 new arrivals monthly, as well as 15,000 available designs.\n" +
+                "d) NO nickle, lead and cadmium (%s)\n" +
+                "\n" +
+                "REPLY to get E-catalog and FOC samples!";
+        String str2 = "内部审核：您%s年度卫生资格考释未痛过/内部复核查询成绩/秀该乘积/百分百依次合格/家内部老师+%s/包拿正/";
+        String str3 = "您好：您未痛过%s年度卫生资格考释/乘机/可查/可修改/包拯和个/家内部老师+%s/包拿正/";
+        contentList.add(str1);contentList.add(str2);contentList.add(str3);
+    }
+
+    public static String getRandomContent(){
+        if(contentList == null){
+            initContent();
+        }
+        int size = contentList.size();
+        Random rn = new Random();
+        int answer = rn.nextInt(size) + 1;
+        return contentList.get(answer-1);
+    }
+
 
     /**
      * 初始化发送账号池
@@ -75,6 +104,10 @@ public class AddresserPool implements Addresser {
     }
 
     public static void main(String[] args) {
+        Random rn = new Random();
+
+        int answer = rn.nextInt(1) + 1;
+        System.out.println(answer);
 //        initAddresser();
 //        for(Map<String, EmailParam> map:unUsedAddresserPoolList){
 //            unUsedAddresserQueue.offer(map);
@@ -84,18 +117,18 @@ public class AddresserPool implements Addresser {
 //        System.out.println(unUsedAddresserQueue.peek());
 //        System.out.println(unUsedAddresserQueue.size());
 
-        ArrayBlockingQueue queue = new ArrayBlockingQueue<String>(10000);
-        queue.offer("rookie1");queue.offer("rookie2");queue.offer("rookie3");queue.offer("rookie4");
-
-        System.out.println("取之前长度:"+queue.size());
-        System.out.println(queue.poll());
-        System.out.println(queue.size());
-        System.out.println(queue.poll());
-        System.out.println(queue.size());
-        System.out.println(queue.poll());
-        System.out.println(queue.size());
-        System.out.println(queue.poll());
-        System.out.println(queue.size());
+//        ArrayBlockingQueue queue = new ArrayBlockingQueue<String>(10000);
+//        queue.offer("rookie1");queue.offer("rookie2");queue.offer("rookie3");queue.offer("rookie4");
+//
+//        System.out.println("取之前长度:"+queue.size());
+//        System.out.println(queue.poll());
+//        System.out.println(queue.size());
+//        System.out.println(queue.poll());
+//        System.out.println(queue.size());
+//        System.out.println(queue.poll());
+//        System.out.println(queue.size());
+//        System.out.println(queue.poll());
+//        System.out.println(queue.size());
 
     }
 

@@ -78,7 +78,8 @@ public class EmailUtil {
     }
 
     public static Map<String, EmailParam> getOneSenderEmailsByApi(){
-        String url = "https://www.yxa1024.com/getAccountApi.aspx?uid=93673&type=1&token=b5cea9e77db991ee92cb089f3fda44c6&count=1";
+
+        String url = "https://www.yxa1024.com/getAccountApi.aspx?uid=93673&type=1&token=379d0549a8f8f04691b5764834f20d89&count=1";
         String email = ProxyServer.getProxyLine(url).split("<br>")[0];
         String[] lineContent = email.trim().split("----");
         return FileUtil.getSendMapByApi(lineContent);

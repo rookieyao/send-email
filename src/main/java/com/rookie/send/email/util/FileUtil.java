@@ -80,7 +80,7 @@ public class FileUtil {
         AddresserPool.addresserSendCountMap.put(address,new AtomicInteger(0));
         emailParam.setEmailSender(address);emailParam.setEmailHost("smtp.office365.com");
         emailParam.setEmailProtocol("smtp");emailParam.setPassword(lineContent[1].trim());
-        emailParam.setEmailNick("卫生通知");
+        emailParam.setEmailNick(address);
         sendInfo.put(lineContent[0].trim(),emailParam);
         return sendInfo;
     }

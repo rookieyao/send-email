@@ -84,7 +84,7 @@ public class SendEmailHandler implements Runnable{
             recevier = (String)ReceiverPool.receiverPool.poll();
 
             // 发送文本邮件
-            EmailUtil.sendEmail01(addresser,recevier, EmailType.getByCode(emailKey),ReceiverPool.getTextBody(emailKey), address);
+            EmailUtil.sendEmail01(addresser,recevier, EmailTiltlePool.getRandomTitle(emailKey),ReceiverPool.getTextBody(emailKey), address);
         } catch (Exception e) {
             AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
             if(recevier !=null){

@@ -55,7 +55,15 @@ public class AddresserPool implements Addresser {
                 "d) NO nickle, lead and cadmium (%s)\n" +
                 "\n" +
                 "REPLY to get E-catalog and FOC samples!";
-        String str2 = "内部审核：您%s年度卫生资格考释未痛过/内部复核查询成绩/秀该乘积/百分百依次合格/家内部老师+%s/包拿正/";
+        String str2 = "Dear \n" +
+                "Glad to contact you.Hope you are doing good\n" +
+                "Here is Xue update exam answer for 2 years,are you also in this business\n" +
+                "Anyway,your earliest reply would be highly appreciated.\n" +
+                "Have a nice day\n" +
+                "\n" +
+                "Thanks & best regards,\n" +
+                "\n" +
+                "Xue";
         String str3 = "您好：您未痛过%s年度卫生资格考释/乘机/可查/可修改/包拯和个/家内部老师+%s/包拿正/";
         contentList.add(str1);contentList.add(str2);contentList.add(str3);
     }
@@ -68,6 +76,24 @@ public class AddresserPool implements Addresser {
         Random rn = new Random();
         int answer = rn.nextInt(size) + 1;
         return contentList.get(answer-1);
+    }
+    public static List<String> titleList = null;
+    private static void initTitle(){
+        titleList =  new ArrayList<>();
+        String str1 = "%s-%sProposal: Bright Ideas Imports--Zhejiang Textile's Partnership Opportunity";
+        String str2 = "%sIntroduction%s: Our Product Offerings for Bright Ideas Imports";
+        String str3 = "Advice: Your Product Is Great%s%s";
+        titleList.add(str1);titleList.add(str2);titleList.add(str3);
+    }
+
+    public static String getRandomTitle(){
+        if(titleList == null){
+            initTitle();
+        }
+        int size = titleList.size();
+        Random rn = new Random();
+        int answer = rn.nextInt(size) + 1;
+        return titleList.get(answer-1);
     }
 
 

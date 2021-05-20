@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.rookie.send.email.param.EmailParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -17,13 +19,19 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.FileOutputStream;
 import java.util.*;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 /**
  * 邮箱发送工具类
  */
+@Component
 public class EmailUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailUtil.class) ;
+
+    @Autowired
+    static TemplateEngine templateEngine;
 
     public static void main1(String[] args) throws Exception {
 //        sendEmail01("dzyaly@aliyun.com","复杂邮件","自定义图片：<img src='cid:gzh.jpg'/>,网络图片：<img src='http://pic37.nipic.com/20140113/8800276_184927469000_2.png'/>") ;
@@ -208,6 +216,13 @@ public class EmailUtil {
         message.setRecipient(Message.RecipientType.TO, new InternetAddress(receiver));
         //邮件的标题
         message.setSubject(title);
+
+//        Context context = new Context();
+//        context.setVariable("name", "rookie");
+//        context.setVariable("posName", "java开发工程师");
+//        context.setVariable("jobName", "java开发");
+//        context.setVariable("departmentName", "部门名称");
+//        String mail = templateEngine.process("mail", context);
         //邮件的文本内容
         message.setContent(body, "text/html;charset=UTF-8");
         //返回创建好的邮件对象

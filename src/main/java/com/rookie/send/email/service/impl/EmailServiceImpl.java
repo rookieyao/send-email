@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
 import java.util.Random;
@@ -106,6 +107,10 @@ public class EmailServiceImpl implements EmailService {
         ReceiverPool.receiverPool = recevierQueue;
         try {
 
+//            BigDecimal threadNum = new BigDecimal(recevierQueue.size()/2);
+//            threadNum.setScale(0,BigDecimal.ROUND_UP);
+
+//            int threadNum = 1;
             double threadNum = Math.ceil(Double.valueOf(recevierQueue.size()/2));
 
             LOGGER.info("使用线程数:{}",threadNum);
@@ -120,16 +125,19 @@ public class EmailServiceImpl implements EmailService {
     }
 
 
-    public static void main(String[] args) {
-        ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<String>(10000);
-        System.out.println("empty test:"+usedAddresserQueue.isEmpty());
-        System.out.println("size test:"+usedAddresserQueue.size());
-        usedAddresserQueue.offer("rookie");
-        System.out.println("empty1 test:"+usedAddresserQueue.isEmpty());
-        System.out.println("size1 test:"+usedAddresserQueue.size());
-        System.out.println(usedAddresserQueue.poll());
-        System.out.println("empty2 test:"+usedAddresserQueue.isEmpty());
-        System.out.println("size2 test:"+usedAddresserQueue.size());
-    }
+//    public static void main(String[] args) {
+//        BigDecimal threadNum = new BigDecimal(1/2);
+//        threadNum.setScale(0,BigDecimal.ROUND_UP);
+//        System.out.println(threadNum.intValue());
+////        ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<String>(10000);
+////        System.out.println("empty test:"+usedAddresserQueue.isEmpty());
+////        System.out.println("size test:"+usedAddresserQueue.size());
+////        usedAddresserQueue.offer("rookie");
+////        System.out.println("empty1 test:"+usedAddresserQueue.isEmpty());
+////        System.out.println("size1 test:"+usedAddresserQueue.size());
+////        System.out.println(usedAddresserQueue.poll());
+////        System.out.println("empty2 test:"+usedAddresserQueue.isEmpty());
+////        System.out.println("size2 test:"+usedAddresserQueue.size());
+//    }
 
 }

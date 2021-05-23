@@ -43,15 +43,12 @@ public class SendEmailHandler implements Runnable{
 //            ThreadLocalUtil.set(String.valueOf(Thread.currentThread().getName()),address);
 //            Map<String, EmailParam> address = (Map<String, EmailParam>)ThreadLocalUtil.getThreadLocal().get(String.valueOf(Thread.currentThread().getId()));
 
-
             String addresser = getAddresser(address);
             while(ReceiverPool.receiverPool.size()>0){
                 if(AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
                     LOGGER.info("{}准备发送邮件，今日已发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
                     AddresserPool.addresserSendCountMap.get(addresser).incrementAndGet();
                     sendOneEmail(addresser,address);
-                    LOGGER.info("{}发送完一封邮件，需要休息3*60s再次发送",addresser);
-                    TimeUnit.SECONDS.sleep(60*3);
                 }else{
                     LOGGER.info("{},已到达当天最大发送次数，不让发送邮件!",addresser);
                     break;
@@ -85,13 +82,16 @@ public class SendEmailHandler implements Runnable{
 
             // 发送文本邮件
             EmailUtil.sendEmail01(addresser,recevier, EmailTiltlePool.getRandomTitle(emailKey),ReceiverPool.getTextBody(emailKey), address);
+            LOGGER.info("{}发送完一封邮件，需要休息5*60s再次发送",addresser);
+            TimeUnit.SECONDS.sleep(60*5);
         } catch (Exception e) {
             AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
             if(recevier !=null){
                 ReceiverPool.receiverPool.offer(recevier);
             }
             e.printStackTrace();
-            LOGGER.error("sendOneEmail出现异常，{}",e.getMessage());
+            LOGGER.error("sendOneEmail出现异常，{},准备30s之后继续发送邮件",e.getMessage());
+            TimeUnit.SECONDS.sleep(60);
         }
     }
 

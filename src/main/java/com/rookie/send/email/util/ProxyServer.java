@@ -14,9 +14,10 @@ import java.util.Random;
 
 public class ProxyServer {
 
-    // 按此提取有时候有效ip会不够
+    // 每日免费ip
 //    public static final String ServerGetProxyUrl = "http://ip.ipjldl.com/index.php/api/entry?method=proxyServer.tiqu_api_url&packid=1&fa=0&dt=&groupid=0&fetch_key=&qty=1&time=1&port=2&format=txt&ss=1&css=&dt=&pro=&city=&usertype=6";
-    public static final String ServerGetProxyUrl = "http://ip.ipjldl.com/index.php/api/entry?method=proxyServer.tiqu_api_url&packid=1&fa=0&dt=&groupid=0&fetch_key=&qty=1&time=1&port=2&format=txt&ss=1&css=&dt=&pro=&city=&usertype=6";
+//    按次数提取ip
+    public static final String ServerGetProxyUrl = "http://ip.ipjldl.com/index.php/api/entry?method=proxyServer.tiqu_api_url&packid=0&fa=0&dt=0&groupid=0&fetch_key=&qty=1&time=1&port=2&format=txt&ss=1&css=&dt=0&pro=&city=&usertype=6";
 
     public static void main(String[] args) {
         String v = getProxyLine(ServerGetProxyUrl);

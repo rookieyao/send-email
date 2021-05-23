@@ -59,6 +59,32 @@ public class FileUtil {
         return unUsedAddresserQueue;
     }
 
+    public static List<String> readRecevierInfo(String path){
+
+        List<String> sendersInfoList = new ArrayList<>();
+
+        try {
+            // 读取指定路径下发送账号文件
+            ClassPathResource resource = new ClassPathResource(path);
+            InputStream inputStream = resource.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream,"GBK"));
+            String lineTxt = null;
+            while ((lineTxt = br.readLine()) != null) {
+                String recevier = lineTxt.trim();
+                if(regex.matcher(recevier).matches()){
+                    sendersInfoList.add(recevier);
+                }else{
+                    LOGGER.info("不合格的邮箱账号:{}",recevier);
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            System.err.println("read errors :" + e);
+        }
+
+        return sendersInfoList;
+    }
+
     /** emailSender,emailHost,emailProtocol,password,emailNick  */
     private static Map<String, EmailParam> getSendMap(String[] lineContent) {
 

@@ -111,7 +111,7 @@ public class EmailServiceImpl implements EmailService {
 //            threadNum.setScale(0,BigDecimal.ROUND_UP);
 
 //            int threadNum = 1;
-            double threadNum = Math.ceil(Double.valueOf(recevierQueue.size()/2));
+            double threadNum = Math.ceil(Double.valueOf(ReceiverPool.receiverPool.size())/Double.valueOf(AddresserPool.maxSendNum));
 
             LOGGER.info("使用线程数:{}",threadNum);
             for(int i =0; i<threadNum; i++){

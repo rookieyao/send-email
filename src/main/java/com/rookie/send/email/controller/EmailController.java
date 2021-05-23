@@ -2,6 +2,7 @@ package com.rookie.send.email.controller;
 
 import com.rookie.send.email.service.EmailService;
 import com.rookie.send.email.util.ConcurrentHashMapUtil;
+import com.rookie.send.email.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;

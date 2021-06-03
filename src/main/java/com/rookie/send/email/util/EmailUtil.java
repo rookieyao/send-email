@@ -47,6 +47,14 @@ public class EmailUtil {
         }else{
             if(1 == 1){
                 LOGGER.info("{} STARTING TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",addresser, receiver,title,body, JSON.toJSONString(address));
+//
+//                if(AddresserPool.addresserSendCountMap.get(addresser).intValue() <=10){
+//
+//                    return;
+//                }else{
+//                    throw new RuntimeException("自定义异常");
+//
+//                }
             }
         }
         while (iterator.hasNext()){

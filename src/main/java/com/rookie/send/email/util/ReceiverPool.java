@@ -1,5 +1,6 @@
 package com.rookie.send.email.util;
 
+import com.rookie.send.email.entity.Email;
 import com.rookie.send.email.param.BodyType;
 import com.rookie.send.email.param.EmailParam;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Component
 public class ReceiverPool {
     // 接收者账号队列
-    public static volatile ArrayBlockingQueue receiverPool = null;
+    public static volatile ArrayBlockingQueue receiverPool = new ArrayBlockingQueue<Email>(200000);
 
     public static String getTextBody(String emailKey){
 

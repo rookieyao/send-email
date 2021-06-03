@@ -1,29 +1,44 @@
 package com.rookie.send.email.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.rookie.send.email.entity.Email;
+import com.rookie.send.email.mapper.EmailErrorMapper;
+import com.rookie.send.email.mapper.EmailMapper;
 import com.rookie.send.email.model.SendEmailModel;
 import com.rookie.send.email.param.BodyType;
 import com.rookie.send.email.param.EmailParam;
 import com.rookie.send.email.param.EmailType;
+import com.rookie.send.email.service.EmailErrorService;
 import com.rookie.send.email.service.EmailService;
 import com.rookie.send.email.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Component
 @Service
-public class EmailServiceImpl implements EmailService {
+public class EmailServiceImpl extends ServiceImpl<EmailMapper, Email> implements EmailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class) ;
+
+    @Autowired
+    EmailMapper emailMapper;
+
+    @Autowired
+    EmailService emailService;
+
+    @Autowired
+    EmailErrorService emailErrorService;
+
+    @Autowired
+    EmailErrorMapper emailErrorMapper;
 
     @Async("taskExecutor")
     @Override
@@ -89,7 +104,7 @@ public class EmailServiceImpl implements EmailService {
 
 
                 for(Map<String, EmailParam> address:AddresserPool.unUsedAddresserPoolList){
-                    sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                    sendEmailPool.execute(new SendEmailHandler(emailErrorService, emailService, address,EmailType.EMAIL_TEXT_KEY.getCode()));
                     // todo 这里之前没有休眠，导致的后果就是SendEmailHandler 执行的时候，发送者的账号会错乱。
                     //  本来应该一个账号一个线程发送一次之后休息指定时间，实际上是一个账号连续发送几次邮件
                     //  感觉这里应该有其他做法的
@@ -101,43 +116,84 @@ public class EmailServiceImpl implements EmailService {
 //        }
     }
 
-    @Override
-    public void sendEmailByApi(ArrayBlockingQueue recevierQueue) {
+    static ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
 
-        ReceiverPool.receiverPool = recevierQueue;
+    public String getBatchNum(){
+        String s = UUID.randomUUID().toString().replaceAll("-", "");
+        return s;
+
+    }
+
+    @Override
+    public void sendEmailByApi(List<String> emailList) {
+
+        String batchNum = getBatchNum();
+        // 1.将要发送的email存入数据库，备份
+        try {
+            emailService.saveBatch(getEntityList(emailList,batchNum));
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("saveBatch occur an exception!!!");
+        }
+
+        List<Email> unSendEmailList = findUnSendEmailListByBatchNum(batchNum);
+        for(Email email: unSendEmailList){
+            ReceiverPool.receiverPool.offer(email);
+        }
+//        ReceiverPool.receiverPool = recevierQueue;
         try {
 
 //            BigDecimal threadNum = new BigDecimal(recevierQueue.size()/2);
 //            threadNum.setScale(0,BigDecimal.ROUND_UP);
 
 //            int threadNum = 1;
+            // 2. 开启线程发送邮件
             double threadNum = Math.ceil(Double.valueOf(ReceiverPool.receiverPool.size())/Double.valueOf(AddresserPool.maxSendNum));
 
             LOGGER.info("使用线程数:{}",threadNum);
             for(int i =0; i<threadNum; i++){
                 Map<String, EmailParam> address = AddresserPool.getAddressByApi();
-                sendEmailPool.execute(new SendEmailHandler(address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                sendEmailPool.execute(new SendEmailHandler(emailErrorService, emailService,address,EmailType.EMAIL_TEXT_KEY.getCode()));
                 TimeUnit.SECONDS.sleep(60);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            //3.使用定时线程池定时去获取db中发送失败的邮件
+            scheduledExecutorService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    Map<String,Object> params = new HashMap<>();
+                    params.put("status",2);
+                    List<Email> emails = emailMapper.selectByMap(params);
+                    if(emails !=null && emails.size() >0){
+                        emailErrorService.sendEmail(emails);
+                    }else{
+                        LOGGER.info("there is no error email！！！");
+                    }
+                }
+            }, 30,TimeUnit.MINUTES);
         }
     }
 
+    private List<Email> findUnSendEmailListByBatchNum(String batchNum) {
+        Map<String,Object> params = new HashMap<>();
+        params.put("status",0);
+        params.put("batch_num",batchNum);
+        return emailMapper.selectByMap(params);
+    }
 
-//    public static void main(String[] args) {
-//        BigDecimal threadNum = new BigDecimal(1/2);
-//        threadNum.setScale(0,BigDecimal.ROUND_UP);
-//        System.out.println(threadNum.intValue());
-////        ArrayBlockingQueue usedAddresserQueue = new ArrayBlockingQueue<String>(10000);
-////        System.out.println("empty test:"+usedAddresserQueue.isEmpty());
-////        System.out.println("size test:"+usedAddresserQueue.size());
-////        usedAddresserQueue.offer("rookie");
-////        System.out.println("empty1 test:"+usedAddresserQueue.isEmpty());
-////        System.out.println("size1 test:"+usedAddresserQueue.size());
-////        System.out.println(usedAddresserQueue.poll());
-////        System.out.println("empty2 test:"+usedAddresserQueue.isEmpty());
-////        System.out.println("size2 test:"+usedAddresserQueue.size());
-//    }
+    private Collection<Email> getEntityList(List<String> emailList, String batchNum) {
+
+        List<Email> entityList = new ArrayList<>();
+        for (String receiver: emailList){
+            Email email = new Email();
+            email.setEmail(receiver);
+            email.setStatus(0);
+            email.setBatchNum(batchNum);
+            entityList.add(email);
+        }
+        return entityList;
+    }
 
 }

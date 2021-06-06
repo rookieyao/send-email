@@ -20,6 +20,12 @@ public class Email {
 
     private String batchNum;
 
+    private String sendInfo;
+
     private String msg;
+
+    private String sender;
+
+    private Integer errorSendNum;
 
 }

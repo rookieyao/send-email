@@ -1,5 +1,6 @@
 package com.rookie.send.email.util;
 
+import com.alibaba.fastjson.JSON;
 import com.rookie.send.email.entity.Email;
 import com.rookie.send.email.entity.EmailError;
 import com.rookie.send.email.param.EmailParam;
@@ -18,27 +19,28 @@ import java.util.concurrent.TimeUnit;
  * @Description
  **/
 
-public class SendEmailHandler implements Runnable{
+public class SendErrorEmailHandler implements Runnable{
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SendEmailHandler.class) ;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SendErrorEmailHandler.class) ;
 
-    private static Map<String, EmailParam> address;
 //    private static String recevier;
     private static String emailKey;
 //    private CountDownLatch countDownLatch;
+
+    private static Map<String, EmailParam> addressByApi;
 
     private EmailErrorService emailErrorService;
 
     private EmailService emailService;
 
-    public SendEmailHandler(EmailErrorService emailErrorService, EmailService emailService, Map<String, EmailParam> address, String emailKey) {
+    public SendErrorEmailHandler(Map<String, EmailParam> addressByApi, EmailErrorService emailErrorService, EmailService emailService, String emailKey) {
 //        LOGGER.info("{}对应的当前线程id:{}",getAddresser(address),Thread.currentThread().getId());
-        this.address = address;
 //        this.recevier = recevier;
         this.emailKey = emailKey;
 //        this.countDownLatch = countDownLatch;
         this.emailErrorService = emailErrorService;
         this.emailService = emailService;
+        this.addressByApi = addressByApi;
 
     }
 
@@ -50,22 +52,24 @@ public class SendEmailHandler implements Runnable{
 //            ThreadLocalUtil.set(String.valueOf(Thread.currentThread().getName()),address);
 //            Map<String, EmailParam> address = (Map<String, EmailParam>)ThreadLocalUtil.getThreadLocal().get(String.valueOf(Thread.currentThread().getId()));
 
-            String addresser = getAddresser(address);
-            while(ReceiverPool.receiverPool.size()>0){
+            String addresser = getAddresser(addressByApi);
+            while(ReceiverPool.errorReceiverPool.size()>0){
+//                Map<String, EmailParam> addressByApi = AddresserPool.getAddressByApi();
+//                String addresser = getAddresser(addressByApi);
+                // todo 考虑复用获取到的email
                 if(AddresserPool.addresserSendCountMap.get(addresser).intValue() <= AddresserPool.maxSendNum){
                     LOGGER.info("{}准备发送邮件，今日已发送次数:{}",addresser,AddresserPool.addresserSendCountMap.get(addresser).intValue());
                     AddresserPool.addresserSendCountMap.get(addresser).incrementAndGet();
-                    sendOneEmail(addresser,address);
+                    sendOneEmail(addresser,addressByApi);
                 }else{
                     LOGGER.info("{},已到达当天最大发送次数，不让发送邮件!",addresser);
                     break;
                 }
             }
-            LOGGER.info("收件人队列为空，发送线程{}结束",Thread.currentThread().getName());
+            LOGGER.info("异常收件人队列为空，发送线程{}结束",Thread.currentThread().getName());
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
-//            countDownLatch.countDown();
         }
 
     }
@@ -83,17 +87,32 @@ public class SendEmailHandler implements Runnable{
     static Object object = new Object();
     /**  发送邮件的方法 */
     private void sendOneEmail(String addresser, Map<String, EmailParam> address) throws Exception{
-        Email recevier = null;
-        try {
-            recevier = (Email)ReceiverPool.receiverPool.poll();
 
-            // 发送文本邮件
-            EmailUtil.sendEmail01(addresser,recevier.getEmail(), EmailTiltlePool.getRandomTitle(emailKey),ReceiverPool.getTextBody(emailKey), address);
+        if(ReceiverPool.errorReceiverPool.size() <=0){
+            return;
+        }
+
+        Email recevier = (Email)ReceiverPool.errorReceiverPool.poll();
+
+        // 发送文本邮件
+        String receiverEmail = recevier.getEmail();String title = EmailTiltlePool.getRandomTitle(emailKey);
+        String body = ReceiverPool.getTextBody(emailKey);
+        String sendInfo = String.format("%sSTARTING TO SEND EMAIL,RECEIVER:%s,TITLE:%s,BODY:%s,address:%s",addresser, receiverEmail,title, body, JSON.toJSONString(address));
+
+        recevier.setSendInfo(sendInfo);
+        try {
+//            recevier = (Email)ReceiverPool.receiverPool.poll();
+//
+//            // 发送文本邮件
+//            String receiverEmail = recevier.getEmail();String title = EmailTiltlePool.getRandomTitle(emailKey);
+//            String body = ReceiverPool.getTextBody(emailKey);
+            EmailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
+
             recevier.setStatus(1); //发送成功
             recevier.setMsg("send success!");
             emailService.updateById(recevier);
-            LOGGER.info("{}发送完一封邮件，需要休息5*60s再次发送",addresser);
-            TimeUnit.SECONDS.sleep(60*5);
+            LOGGER.info("{}发送完一封邮件，需要休息30s再次发送",addresser);
+            TimeUnit.SECONDS.sleep(30);
         } catch (Exception e) {
             AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
             if(recevier !=null){
@@ -108,8 +127,6 @@ public class SendEmailHandler implements Runnable{
             TimeUnit.SECONDS.sleep(30);
         }
     }
-
-
 
     private EmailError getErrorEmail(String recevier, String message) {
         EmailError emailError = new EmailError();

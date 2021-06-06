@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface EmailErrorService extends IService<EmailError> {
     void sendEmail(List<Email> emails);
+
+    void sendUnSendEmail(List<Email> emails);
 }

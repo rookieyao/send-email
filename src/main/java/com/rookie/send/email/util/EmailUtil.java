@@ -19,6 +19,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.FileOutputStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -37,6 +39,13 @@ public class EmailUtil {
 //        sendEmail01("dzyaly@aliyun.com","复杂邮件","自定义图片：<img src='cid:gzh.jpg'/>,网络图片：<img src='http://pic37.nipic.com/20140113/8800276_184927469000_2.png'/>") ;
     }
 
+//    public static void main(String[] args) {
+//        String str = String.format("%sSTARTING TO SEND EMAIL,RECEIVER:%s,TITLE:%s,BODY:%s,address:%s","111", "222","333","444", "555");
+//        System.out.println(str);
+//    }
+
+
+    static Transport ts ;
     /**
      * 邮箱发送模式01：纯文本格式
      */
@@ -46,7 +55,7 @@ public class EmailUtil {
             return;
         }else{
             if(1 == 1){
-                LOGGER.info("{} STARTING TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",addresser, receiver,title,body, JSON.toJSONString(address));
+//                LOGGER.info("{} STARTING TO SEND EMAIL,RECEIVER:{},TITLE:{},BODY:{},address:{}",addresser, receiver,title,body, JSON.toJSONString(address));
 //
 //                if(AddresserPool.addresserSendCountMap.get(addresser).intValue() <=10){
 //
@@ -58,40 +67,46 @@ public class EmailUtil {
             }
         }
         while (iterator.hasNext()){
-            EmailParam emailParam = iterator.next(); // 发送人对象信息实体
+//            synchronized (object){
+                EmailParam emailParam = iterator.next(); // 发送人对象信息实体
 
-            Properties props = getProperties(emailParam);
+                Properties props = getProperties(emailParam);
 
-            //使用JavaMail发送邮件的5个步骤
-            //1、创建session
-            Session session = Session.getInstance(props);
-            //开启Session的debug模式，这样就可以查看到程序发送Email的运行状态
-            session.setDebug(true);
-            //2、通过session得到transport对象
-            Transport ts = session.getTransport();
-            //3、使用邮箱的用户名和密码连上邮件服务器，发送邮件时，发件人需要提交邮箱的用户名和密码给smtp服务器，用户名和密码都通过验证之后才能够正常发送邮件给收件人。
-            ts.connect(emailParam.getEmailHost(), emailParam.getEmailSender(), emailParam.getPassword());
-            //4、创建邮件
-            // Message message = createEmail01(session,receiver,title,body);
-            Message message = createEmail01(session,receiver,title,body,emailParam);
-            //5、发送邮件
-            ts.sendMessage(message, message.getAllRecipients());
-            ts.close();
+                //使用JavaMail发送邮件的5个步骤
+                //1、创建session
+                Session session = Session.getInstance(props);
+                //开启Session的debug模式，这样就可以查看到程序发送Email的运行状态
+                session.setDebug(true);
+                //2、通过session得到transport对象
+//                Transport ts = session.getTransport();
+                if(ts == null) {
+                    ts = session.getTransport("smtp");
+                }
+                //3、使用邮箱的用户名和密码连上邮件服务器，发送邮件时，发件人需要提交邮箱的用户名和密码给smtp服务器，用户名和密码都通过验证之后才能够正常发送邮件给收件人。
+                ts.connect(emailParam.getEmailHost(), emailParam.getEmailSender(), emailParam.getPassword());
+                //4、创建邮件
+                // Message message = createEmail01(session,receiver,title,body);
+                Message message = createEmail01(session,receiver,title,body,emailParam);
+                //5、发送邮件
+                ts.sendMessage(message, message.getAllRecipients());
+
+                ts.close();
+//            }
         }
 
     }
 
-    final static String url = "https://www.yxa1024.com/getAccountApi.aspx?uid=93673&type=1&token=b5cea9e77db991ee92cb089f3fda44c6&count=100";
-    /** 通过api获取发送账号 */
-    public static void initSenderEmailsByApi(){
-        String[] senderEmailsByApi = ProxyServer.getProxyLine(url).split("<br>");
-        for (String email:senderEmailsByApi){
-            LOGGER.info("通过api获取的邮箱信息为:{}",email);
-            String[] lineContent = email.trim().split("----");
-            Map<String, EmailParam> sendMapByApi = FileUtil.getSendMapByApi(lineContent);
-            AddresserPool.unUsedAddresserPoolList.add(sendMapByApi);
-        }
-    }
+//    final static String url = "https://www.yxa1024.com/getAccountApi.aspx?uid=93673&type=1&token=b5cea9e77db991ee92cb089f3fda44c6&count=100";
+//    /** 通过api获取发送账号 */
+//    public static void initSenderEmailsByApi(){
+//        String[] senderEmailsByApi = ProxyServer.getProxyLine(url).split("<br>");
+//        for (String email:senderEmailsByApi){
+//            LOGGER.info("通过api获取的邮箱信息为:{}",email);
+//            String[] lineContent = email.trim().split("----");
+//            Map<String, EmailParam> sendMapByApi = FileUtil.getSendMapByApi(lineContent);
+//            AddresserPool.unUsedAddresserPoolList.add(sendMapByApi);
+//        }
+//    }
 
     public static Map<String, EmailParam> getOneSenderEmailsByApi(){
 
@@ -103,7 +118,7 @@ public class EmailUtil {
 
     static Object object = new Object();
     /** foxmail 邮箱发送邮件属性配置类获取方法*/
-    public static synchronized Properties getProperties(EmailParam emailParam){
+    public static  Properties getProperties(EmailParam emailParam){
 //使用代理请求网易得时候，可能会出现异常，多试几次应该就可以了，其他邮箱可能也有这样得情况
         Properties props = System.getProperties();
 

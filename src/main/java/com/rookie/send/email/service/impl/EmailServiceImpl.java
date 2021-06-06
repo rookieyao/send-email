@@ -59,10 +59,10 @@ public class EmailServiceImpl extends ServiceImpl<EmailMapper, Email> implements
     }
     static final int nThreads = Runtime.getRuntime().availableProcessors();
 
-    private static ExecutorService sendEmailPool = new ThreadPoolExecutor(100, 100,
+    private static ExecutorService sendEmailPool = new ThreadPoolExecutor(500, 500,
             3L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(1024), new ThreadFactoryBuilder()
-            .setNameFormat("demo-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
+            .setNameFormat("send-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
 
 //    public void sendEmailByThread1(ArrayBlockingQueue recevierQueue) {
 //        ReceiverPool.receiverPool = recevierQueue;
@@ -153,26 +153,27 @@ public class EmailServiceImpl extends ServiceImpl<EmailMapper, Email> implements
             LOGGER.info("使用线程数:{}",threadNum);
             for(int i =0; i<threadNum; i++){
                 Map<String, EmailParam> address = AddresserPool.getAddressByApi();
-                sendEmailPool.execute(new SendEmailHandler(emailErrorService, emailService,address,EmailType.EMAIL_TEXT_KEY.getCode()));
-                TimeUnit.SECONDS.sleep(60);
+//                sendEmailPool.execute(new SendEmailHandler(emailErrorService, emailService,address,EmailType.EMAIL_TEXT_KEY.getCode()));
+                sendEmailPool.execute(new SendEmailByNewAddressHandler(address, emailErrorService, emailService,EmailType.EMAIL_TEXT_KEY.getCode()));
+                TimeUnit.SECONDS.sleep(10);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
-            //3.使用定时线程池定时去获取db中发送失败的邮件
-            scheduledExecutorService.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    Map<String,Object> params = new HashMap<>();
-                    params.put("status",2);
-                    List<Email> emails = emailMapper.selectByMap(params);
-                    if(emails !=null && emails.size() >0){
-                        emailErrorService.sendEmail(emails);
-                    }else{
-                        LOGGER.info("there is no error email！！！");
-                    }
-                }
-            }, 30,TimeUnit.MINUTES);
+//            //3.使用定时线程池定时去获取db中发送失败的邮件
+//            scheduledExecutorService.schedule(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Map<String,Object> params = new HashMap<>();
+//                    params.put("status",2);
+//                    List<Email> emails = emailMapper.selectByMap(params);
+//                    if(emails !=null && emails.size() >0){
+//                        emailErrorService.sendEmail(emails);
+//                    }else{
+//                        LOGGER.info("there is no error email！！！");
+//                    }
+//                }
+//            }, 3,TimeUnit.MINUTES);
         }
     }
 

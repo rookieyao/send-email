@@ -74,7 +74,7 @@ public class EmailController {
         return "success" ;
     }
 
-    public List<String> getRecevierList(MultipartFile file){
+    public List<String>  getRecevierList(MultipartFile file){
 
         List<String> emailList = new ArrayList<>();
         ArrayBlockingQueue recevierQueue = new ArrayBlockingQueue<Email>(200000);

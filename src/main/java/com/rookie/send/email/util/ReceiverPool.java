@@ -20,9 +20,13 @@ public class ReceiverPool {
     // 接收者账号队列
     public static volatile ArrayBlockingQueue receiverPool = new ArrayBlockingQueue<Email>(200000);
 
+    // 异常接收者账号队列
+    public static volatile ArrayBlockingQueue errorReceiverPool = new ArrayBlockingQueue<Email>(200000);
+
     public static String getTextBody(String emailKey){
 
 //        return EmailUtil.convertTextModel(BodyType.getByCode(emailKey),"二零二一","三叁二九久叁柒零幺");
-        return EmailUtil.convertTextModel(AddresserPool.getRandomContent(),"二零二一","三叁二九久叁柒零幺");
+//        return EmailUtil.convertTextModel(AddresserPool.getRandomContent(),"二零二一","三叁二九久叁柒零幺");
+        return AddresserPool.getRandomContent();
     }
 }

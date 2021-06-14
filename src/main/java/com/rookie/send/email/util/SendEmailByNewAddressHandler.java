@@ -101,16 +101,17 @@ public class SendEmailByNewAddressHandler implements Runnable{
 //            // 发送文本邮件
 //            String receiverEmail = recevier.getEmail();String title = EmailTiltlePool.getRandomTitle(emailKey);
 //            String body = ReceiverPool.getTextBody(emailKey);
-            EmailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
+            EmailUtil emailUtil = new EmailUtil();
+            emailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
 
             recevier.setStatus(1); //发送成功
             recevier.setMsg("send success!");
             recevier.setSender(addresser);
             emailService.updateById(recevier);
-            LOGGER.info("{}发送完一封邮件，需要休息30s再次发送",addresser);
-            TimeUnit.SECONDS.sleep(30);
+            LOGGER.info("{}发送完一封邮件，需要休息60*30s再次发送",addresser);
+            TimeUnit.SECONDS.sleep(60*30);
         } catch (Exception e) {
-            AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
+//            AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
             if(recevier !=null){
                 //暂时不重新放入队列里面,将出现异常的收件账号存入发送异常的表中
                 //                ReceiverPool.receiverPool.offer(recevier);
@@ -120,9 +121,9 @@ public class SendEmailByNewAddressHandler implements Runnable{
                 recevier.setMsg(e.getMessage());
                 emailService.updateById(recevier);
             }
-            e.printStackTrace();
-            LOGGER.error("sendOneEmail出现异常，{},准备30s之后继续发送邮件",e.getMessage());
-            TimeUnit.SECONDS.sleep(30);
+//            e.printStackTrace();
+            LOGGER.error("sendOneEmail出现异常，{},准备60*30s之后继续发送邮件",e.getMessage());
+            TimeUnit.SECONDS.sleep(60*30);
         }
     }
 

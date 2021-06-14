@@ -1,5 +1,6 @@
 package com.rookie.send.email.util;
 
+import com.rookie.send.email.entity.Email;
 import com.rookie.send.email.model.SendEmailModel;
 import com.rookie.send.email.param.EmailParam;
 import org.springframework.core.io.ClassPathResource;
@@ -145,6 +146,20 @@ public class AddresserPool implements Addresser {
 
         return EmailUtil.getOneSenderEmailsByApi();
     }
+
+//    public static Map<String, EmailParam> getAddressByDb(Email email){
+//
+//        Map<String,EmailParam> sendInfo = new HashMap<>();
+//        EmailParam emailParam = new EmailParam();
+//        String address = email.getSender();
+//        Integer errorSendNum = email.getErrorSendNum();
+//        AddresserPool.addresserSendCountMap.put(address,new AtomicInteger(0));
+//        emailParam.setEmailSender(address);emailParam.setEmailHost("smtp.office365.com");
+//        emailParam.setEmailProtocol("smtp");emailParam.setPassword(lineContent[1].trim());
+//        emailParam.setEmailNick(address);
+//        sendInfo.put(lineContent[0].trim(),emailParam);
+//        return sendInfo;
+//    }
     @Override
     public Map<String, EmailParam> getAnSendEmailParam() {
 

@@ -125,6 +125,41 @@ public class EmailServiceImpl extends ServiceImpl<EmailMapper, Email> implements
     }
 
     @Override
+    public List<Email> getDbRecevierList(String batchNum) {
+
+
+        Map<String,Object> params = new HashMap<>();
+        params.put("status",0);
+        params.put("batch_num",batchNum);
+        return emailMapper.selectByMap(params);
+//        return emailMapper.getDbRecevierList(batchNum);
+    }
+
+    @Override
+    public void sendEmailByDb(List<Email> recevierList) {
+
+
+        for(Email email: recevierList){
+            ReceiverPool.receiverPool.offer(email);
+        }
+        try {
+
+            // 2. 开启线程发送邮件
+            double threadNum = Math.ceil(Double.valueOf(ReceiverPool.receiverPool.size())/Double.valueOf(AddresserPool.maxSendNum));
+
+            LOGGER.info("使用线程数:{}",threadNum);
+            for(int i =0; i<threadNum; i++){
+                Map<String, EmailParam> address = AddresserPool.getAddressByApi();
+
+                sendEmailPool.execute(new SendEmailByNewAddressHandler(address, emailErrorService, emailService,EmailType.EMAIL_TEXT_KEY.getCode()));
+                TimeUnit.SECONDS.sleep(15);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void sendEmailByApi(List<String> emailList) {
 
         String batchNum = getBatchNum();
@@ -155,7 +190,7 @@ public class EmailServiceImpl extends ServiceImpl<EmailMapper, Email> implements
                 Map<String, EmailParam> address = AddresserPool.getAddressByApi();
 //                sendEmailPool.execute(new SendEmailHandler(emailErrorService, emailService,address,EmailType.EMAIL_TEXT_KEY.getCode()));
                 sendEmailPool.execute(new SendEmailByNewAddressHandler(address, emailErrorService, emailService,EmailType.EMAIL_TEXT_KEY.getCode()));
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(15);
             }
         } catch (Exception e) {
             e.printStackTrace();

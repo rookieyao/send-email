@@ -52,15 +52,15 @@ public class ScheduleSendErrorEmailTask {
      * @创建人 rookie
      * @创建时间 2021-06-06
      */
-    @Scheduled(cron = "0 0 0/1 * * ?")
-    private void checkUnSendEmailTasks() {
-        Map<String,Object> params = new HashMap<>();
-        params.put("status",0);
-        List<Email> emails = emailMapper.selectByMap(params);
-        if(emails !=null && emails.size() >0 && ReceiverPool.receiverPool.size() == 0){
-            emailErrorService.sendUnSendEmail(emails);
-        }else{
-            LOGGER.info("there is no unsend email！！！");
-        }
-    }
+//    @Scheduled(cron = "0 0 0/1 * * ?")
+//    private void checkUnSendEmailTasks() {
+//        Map<String,Object> params = new HashMap<>();
+//        params.put("status",0);
+//        List<Email> emails = emailMapper.selectByMap(params);
+//        if(emails !=null && emails.size() >0 && ReceiverPool.receiverPool.size() == 0){
+//            emailErrorService.sendUnSendEmail(emails);
+//        }else{
+//            LOGGER.info("there is no unsend email！！！");
+//        }
+//    }
 }

@@ -13,4 +13,8 @@ public interface EmailService extends IService<Email> {
     void sendEmailByThread(ArrayBlockingQueue recevierQueue);
 
     void sendEmailByApi(List<String> emailList);
+
+    List<Email> getDbRecevierList(String batchNum);
+
+    void sendEmailByDb(List<Email> recevierList);
 }

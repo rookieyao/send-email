@@ -26,6 +26,8 @@ public class Email {
 
     private String sender;
 
+    private String password;
+
     private Integer errorSendNum;
 
 }

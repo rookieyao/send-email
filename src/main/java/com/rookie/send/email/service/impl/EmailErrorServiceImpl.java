@@ -65,7 +65,7 @@ public class EmailErrorServiceImpl extends ServiceImpl<EmailErrorMapper, EmailEr
             Map<String, EmailParam> address = AddresserPool.getAddressByApi();
             int i = 0;
             while (ReceiverPool.errorReceiverPool.size() >0){
-                if(i >4){
+                if(i >5){
                     address = AddresserPool.getAddressByApi();
                     i = 0;
                 }
@@ -138,17 +138,18 @@ public class EmailErrorServiceImpl extends ServiceImpl<EmailErrorMapper, EmailEr
 //            // 发送文本邮件
 //            String receiverEmail = recevier.getEmail();String title = EmailTiltlePool.getRandomTitle(emailKey);
 //            String body = ReceiverPool.getTextBody(emailKey);
-            EmailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
+            EmailUtil emailUtil = new EmailUtil();
+            emailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
 
             recevier.setStatus(1); //发送成功
             recevier.setSender(addresser);
             recevier.setMsg("send success!");
             emailService.updateById(recevier);
-            LOGGER.info("{}发送完一封邮件，需要休息30s再次发送",addresser);
-            TimeUnit.SECONDS.sleep(30);
+            LOGGER.info("{}发送完一封邮件，需要休息15s再次发送",addresser);
+            TimeUnit.SECONDS.sleep(15);
         } catch (Exception e) {
             try {
-                AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
+//                AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
                 if(recevier !=null){
                     //暂时不重新放入队列里面,将出现异常的收件账号存入发送异常的表中
                     //                ReceiverPool.receiverPool.offer(recevier);
@@ -164,9 +165,9 @@ public class EmailErrorServiceImpl extends ServiceImpl<EmailErrorMapper, EmailEr
                     recevier.setMsg(e.getMessage());
                     emailService.updateById(recevier);
                 }
-                e.printStackTrace();
-                LOGGER.error("sendOneEmail出现异常，{},准备30s之后继续发送邮件",e.getMessage());
-                TimeUnit.SECONDS.sleep(30);
+//                e.printStackTrace();
+                LOGGER.error("sendOneEmail出现异常，{},准备15s之后继续发送邮件",e.getMessage());
+                TimeUnit.SECONDS.sleep(15);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -188,7 +189,8 @@ public class EmailErrorServiceImpl extends ServiceImpl<EmailErrorMapper, EmailEr
         email.setSendInfo(sendInfo);
         try {
 
-            EmailUtil.sendEmail01(addresser,email.getEmail(),title ,body, address);
+            EmailUtil emailUtil = new EmailUtil();
+            emailUtil.sendEmail01(addresser,email.getEmail(),title ,body, address);
 
             email.setStatus(1); //发送成功
             email.setSender(addresser);

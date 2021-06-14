@@ -106,7 +106,8 @@ public class SendErrorEmailHandler implements Runnable{
 //            // 发送文本邮件
 //            String receiverEmail = recevier.getEmail();String title = EmailTiltlePool.getRandomTitle(emailKey);
 //            String body = ReceiverPool.getTextBody(emailKey);
-            EmailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
+            EmailUtil emailUtil = new EmailUtil();
+            emailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
 
             recevier.setStatus(1); //发送成功
             recevier.setMsg("send success!");

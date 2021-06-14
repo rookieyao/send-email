@@ -88,7 +88,8 @@ public class SendEmailHandler implements Runnable{
             recevier = (Email)ReceiverPool.receiverPool.poll();
 
             // 发送文本邮件
-            EmailUtil.sendEmail01(addresser,recevier.getEmail(), EmailTiltlePool.getRandomTitle(emailKey),ReceiverPool.getTextBody(emailKey), address);
+            EmailUtil emailUtil = new EmailUtil();
+            emailUtil.sendEmail01(addresser,recevier.getEmail(), EmailTiltlePool.getRandomTitle(emailKey),ReceiverPool.getTextBody(emailKey), address);
             recevier.setStatus(1); //发送成功
             recevier.setMsg("send success!");
             emailService.updateById(recevier);

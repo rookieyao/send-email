@@ -16,5 +16,9 @@ public interface EmailService extends IService<Email> {
 
     List<Email> getDbRecevierList(String batchNum);
 
+    List<Email> getErrorSendEmailListByBatchNum(String batchNum);
+
     void sendEmailByDb(List<Email> recevierList);
+
+    void sendErrorEmail(List<Email> recevierList);
 }

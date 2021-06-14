@@ -83,6 +83,16 @@ public class EmailController {
         }
     }
 
+    @RequestMapping("/sendErrorEmail")
+    public String sendErrorEmail(@RequestParam("batchNum") String batchNum){
+
+        List<Email> recevierList = emailService.getErrorSendEmailListByBatchNum(batchNum);;
+
+        LOGGER.info("starting send error email,email`s num is:{}",recevierList.size());
+        emailService.sendErrorEmail(recevierList);
+        return "success";
+    }
+
     @RequestMapping("/sendEmailByApi")
     public String sendEmailByApi (@RequestParam("file") MultipartFile file, HttpServletRequest request){
 

@@ -32,7 +32,7 @@ public class ScheduleSendErrorEmailTask {
     EmailErrorService emailErrorService;
 
     /** 每三分钟执行一次 */
-    @Scheduled(cron = "0 */3 * * * ?")
+//    @Scheduled(cron = "0 */3 * * * ?")
     private void configureTasks() {
         Map<String,Object> params = new HashMap<>();
         params.put("status",2);

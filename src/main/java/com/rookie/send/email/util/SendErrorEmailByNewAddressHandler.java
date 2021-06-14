@@ -2,7 +2,6 @@ package com.rookie.send.email.util;
 
 import com.alibaba.fastjson.JSON;
 import com.rookie.send.email.entity.Email;
-import com.rookie.send.email.entity.EmailError;
 import com.rookie.send.email.param.EmailParam;
 import com.rookie.send.email.service.EmailErrorService;
 import com.rookie.send.email.service.EmailService;
@@ -15,32 +14,22 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @Author rookie
- * @Date 2021/5/8 15:22
+ * @Date 2021-06-14 17:12
  * @Description
  **/
+public class SendErrorEmailByNewAddressHandler implements Runnable{
+    private static final Logger LOGGER = LoggerFactory.getLogger(SendErrorEmailByNewAddressHandler.class) ;
 
-public class SendEmailByNewAddressHandler implements Runnable{
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SendEmailByNewAddressHandler.class) ;
-
-//    private static String recevier;
     private static String emailKey;
-//    private CountDownLatch countDownLatch;
-
-//    private static Map<String, EmailParam> addressByApi;
 
     private EmailErrorService emailErrorService;
 
     private EmailService emailService;
 
-    public SendEmailByNewAddressHandler(Map<String, EmailParam> addressByApi, EmailErrorService emailErrorService, EmailService emailService, String emailKey) {
-//        LOGGER.info("{}对应的当前线程id:{}",getAddresser(address),Thread.currentThread().getId());
-//        this.recevier = recevier;
+    public SendErrorEmailByNewAddressHandler(Map<String, EmailParam> addressByApi, EmailErrorService emailErrorService, EmailService emailService, String emailKey) {
         this.emailKey = emailKey;
-//        this.countDownLatch = countDownLatch;
         this.emailErrorService = emailErrorService;
         this.emailService = emailService;
-//        this.addressByApi = addressByApi;
 
     }
 
@@ -49,13 +38,11 @@ public class SendEmailByNewAddressHandler implements Runnable{
 
         try {
 
-//            ThreadLocalUtil.set(String.valueOf(Thread.currentThread().getName()),address);
-//            Map<String, EmailParam> address = (Map<String, EmailParam>)ThreadLocalUtil.getThreadLocal().get(String.valueOf(Thread.currentThread().getId()));
 
             Map<String, EmailParam> addressByApi = AddresserPool.getAddressByApi();
             String addresser = getAddresser(addressByApi);
             int i = 0;
-            while(ReceiverPool.receiverPool.size()>0){
+            while(ReceiverPool.errorReceiverPool.size()>0){
 
                 if(i < 10){
                     sendOneEmail(addresser,addressByApi);
@@ -100,7 +87,7 @@ public class SendEmailByNewAddressHandler implements Runnable{
     static Object object = new Object();
     /**  发送邮件的方法 */
     private void sendOneEmail(String addresser, Map<String, EmailParam> address) throws Exception{
-        Email recevier = (Email)ReceiverPool.receiverPool.poll();
+        Email recevier = (Email)ReceiverPool.errorReceiverPool.poll();
 
 
         // 发送文本邮件
@@ -111,11 +98,6 @@ public class SendEmailByNewAddressHandler implements Runnable{
         recevier.setSendInfo(sendInfo);
         recevier.setPassword(address.get(addresser).getPassword());
         try {
-//            recevier = (Email)ReceiverPool.receiverPool.poll();
-//
-//            // 发送文本邮件
-//            String receiverEmail = recevier.getEmail();String title = EmailTiltlePool.getRandomTitle(emailKey);
-//            String body = ReceiverPool.getTextBody(emailKey);
             EmailUtil emailUtil = new EmailUtil();
             emailUtil.sendEmail01(addresser,recevier.getEmail(),title ,body, address);
 
@@ -142,12 +124,4 @@ public class SendEmailByNewAddressHandler implements Runnable{
             TimeUnit.SECONDS.sleep(20);
         }
     }
-
-    private EmailError getErrorEmail(String recevier, String message) {
-        EmailError emailError = new EmailError();
-        emailError.setEmail(recevier);
-        emailError.setMsg(message);
-        return emailError;
-    }
-
 }

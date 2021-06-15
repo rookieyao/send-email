@@ -106,8 +106,8 @@ public class SendErrorEmailByNewAddressHandler implements Runnable{
             recevier.setSender(addresser);
 
             emailService.updateById(recevier);
-            LOGGER.info("{}发送完一封邮件，需要休息20s再次发送",addresser);
-            TimeUnit.SECONDS.sleep(20);
+            LOGGER.info("{}发送完一封邮件，需要休息60*4s再次发送",addresser);
+            TimeUnit.SECONDS.sleep(60*4);
         } catch (Exception e) {
 //            AddresserPool.addresserSendCountMap.get(addresser).decrementAndGet();
             if(recevier !=null){
@@ -120,8 +120,8 @@ public class SendErrorEmailByNewAddressHandler implements Runnable{
                 emailService.updateById(recevier);
             }
 //            e.printStackTrace();
-            LOGGER.error("sendOneEmail出现异常，{},准备20s之后继续发送邮件",e.getMessage());
-            TimeUnit.SECONDS.sleep(20);
+            LOGGER.error("sendOneEmail出现异常，{},准备60*4s之后继续发送邮件",e.getMessage());
+            TimeUnit.SECONDS.sleep(60*4);
         }
     }
 }
